@@ -17,7 +17,9 @@ Phase 1: 대회 구조 (Competition → Stage → Event)
     │               │
     │               └── Phase 4: 리더보드 (이벤트별 → 종합 → WebSocket)
     │
-    └── Phase 5: 선수 프로필 (AthleteProfile ← Phase 1에서 병렬 가능)
+    ├── Phase 5: 선수 프로필 (AthleteProfile ← Phase 1에서 병렬 가능)
+    │
+    └── Phase 8: 성능 최적화 (N+1 최적화, 캐싱, 스냅샷)
     
 Phase 6: 웹 어드민 UI ← Phase 1~4 API 완료 후 (Phase 5와 병렬)
 Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
@@ -723,6 +725,41 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 - [ ] 웹 어드민 + Flutter 앱 연동 E2E 검증
 - [ ] `flutter build apk` / `flutter build ios` 성공
 - [ ] 스펙의 Success Criteria 9개 항목 전부 충족 확인
+
+---
+
+## Phase 8: 성능 최적화
+
+### Task B-8-1: N+1 쿼리 최적화 (QueryDSL) [M]
+
+**Description:** 리더보드 조회 시 발생하는 Score → Registration → User → TeamMember N+1 문제를 QueryDSL `fetchJoin`으로 해결.
+
+**Acceptance criteria:**
+- [ ] `CompetitionScoreCustomRepository` 구현
+- [ ] 단일 쿼리로 리더보드에 필요한 모든 연관 엔티티 조회
+- [ ] `LeaderboardService`가 최적화된 쿼리를 사용하도록 리팩토링
+
+---
+
+### Task B-8-2: 리더보드 캐싱 및 비동기 업데이트 [M]
+
+**Description:** Spring Cache 적용 및 WebSocket 전송 로직 비동기화.
+
+**Acceptance criteria:**
+- [ ] `@Cacheable`을 이용한 리더보드 결과 캐싱 (이벤트별/종합)
+- [ ] `@Async`를 이용한 리더보드 계산 및 WebSocket 전송 (트랜잭션 분리)
+- [ ] 기록 판독 시 관련 캐시 무효화(`clear`) 처리
+
+---
+
+### Task B-8-3: 선수 이력 스냅샷 시스템 [M]
+
+**Description:** 대회 종료 시 최종 결과를 스냅샷 테이블에 저장하여 프로필 조회 성능 개선.
+
+**Acceptance criteria:**
+- [ ] `CompetitionHistorySnapshot` 엔티티 및 저장소 구현
+- [ ] `CompetitionCompletedEvent` 발행 및 스냅샷 생성 리스너 구현
+- [ ] `AthleteProfileService`가 실시간 계산 대신 스냅샷을 조회하도록 수정
 
 ---
 

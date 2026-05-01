@@ -18,8 +18,9 @@
 
 - 주최자가 대회 개설 → 이벤트 구성 → 신청 관리 → 기록 판독 → 리더보드 프로젝션을 어드민 내에서 완결할 수 있다
 - 참가자가 앱에서 신청 → 기록 제출 → 실시간 순위 확인을 완결할 수 있다
-- 오프라인 현장에서 WebSocket 리더보드가 주최자 어드민에 실시간으로 반영된다
-- 관중(Spectator)용 Flutter 앱 리더보드는 REST API 기반으로 최소 30초~1분 간격의 폴링(Polling)을 통해 최신 상태를 유지한다.
+- 오프라인 현장에서 WebSocket 리더보드가 주최자 어드민에 실시간으로 반영된다 (성능 최적화를 위해 비동기 처리 및 캐싱 적용)
+- 관중(Spectator)용 Flutter 앱 리더보드는 REST API 기반으로 최소 30초~1분 간격의 폴링(Polling)을 통해 최신 상태를 유지한다 (백엔드 캐시를 통해 빠른 응답 보장).
+- 대규모 참가자 대응을 위해 N+1 쿼리 방지 및 대회 종료 후 결과 스냅샷 시스템을 운영한다.
 
 ---
 
@@ -310,6 +311,27 @@ data class AthleteProfile(
 
 OAuth 로그인 시 자동 생성 (기본값만). 마이페이지에서 boxId, biography 등 수정.
 
+### CompetitionHistorySnapshot (선수 이력 스냅샷)
+
+대회 종료(`status = COMPLETED`) 시점의 최종 성적을 저장하여 조회 성능을 최적화한다.
+
+```kotlin
+data class CompetitionHistorySnapshot(
+    val id: UUID? = null,
+    val competitionId: UUID,
+    val userId: UUID,
+    val registrationId: UUID,
+    val registrationType: RegistrationType,
+    val scaleCategory: String,
+    val competitionName: String,
+    val bannerImageUrl: String?,
+    val competitionEndAt: Instant,
+    val overallRank: Int?,
+    val totalPoints: Int?,
+    val eventScores: List<EventScoreSnapshot>
+)
+```
+
 ---
 
 ## API Endpoints
@@ -453,6 +475,7 @@ OAuth 로그인 시 자동 생성 (기본값만). 마이페이지에서 boxId, b
 | 항목 | 결정 | 이유 |
 |---|---|---|
 | Organizer 권한 | `CompetitionOrganizer` 별도 테이블 (`competitionId + userId`) | 대회별 권한 관리, 향후 공동 주최 확장 가능 |
-| 리더보드 캐싱 | 매 요청마다 실시간 집계 (캐시 없음) | 100인 규모에서 충분, 단순함 우선 |
+| 리더보드 캐싱 | Spring Cache + Redis/Caffeine 캐싱 및 비동기 갱신 | 대규모 대회 시 실시간 집계 부하 방지 및 응답성 향상 |
+| 선수 이력 조회 | 대회 종료 시점 순위/점수 스냅샷 저장 | 과거 대회 리더보드 재계산 방지 (O(1) 조회) |
 | Flutter OAuth | 웹과 동일한 provider (Google, Kakao 등) | 기존 백엔드 OAuth 인프라 재활용 |
 | 이벤트 순서 변경 | 기록(Score)이 1건이라도 존재하면 `order` 변경 불가 (400 반환) | 순위 일관성 보장 |
