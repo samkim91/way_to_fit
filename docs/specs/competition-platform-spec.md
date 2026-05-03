@@ -367,7 +367,8 @@ data class CompetitionHistorySnapshot(
 |---|---|---|---|
 | POST | `/api/competitions/{id}/registrations` | 참가 신청 | User |
 | GET | `/api/competitions/{id}/registrations` | 신청 목록 | Organizer |
-| GET | `/api/competitions/{id}/registrations/me` | 내 신청 조회 | User |
+| GET | `/api/competitions/{id}/registrations/me` | 내 신청 목록 조회 | User |
+| GET | `/api/competitions/{id}/registrations/search-athletes` | 팀원 검색 (대회 미참가자 대상) | User |
 | PATCH | `/api/competitions/{id}/registrations/{regId}/payment` | 결제 상태 변경 | Organizer |
 
 ### EventLineup
@@ -473,9 +474,11 @@ data class CompetitionHistorySnapshot(
 ## Architecture Decisions (확정)
 
 | 항목 | 결정 | 이유 |
-|---|---|---|
+|---|---|---|---|
 | Organizer 권한 | `CompetitionOrganizer` 별도 테이블 (`competitionId + userId`) | 대회별 권한 관리, 향후 공동 주최 확장 가능 |
+| OAuth 보안 | 리다이렉트 URI 화이트리스트 검증 | Open Redirect 취약점 방지 및 모바일 앱 딥링크 보안 강화 |
 | 리더보드 캐싱 | Spring Cache + Redis/Caffeine 캐싱 및 비동기 갱신 | 대규모 대회 시 실시간 집계 부하 방지 및 응답성 향상 |
+
 | 선수 이력 조회 | 대회 종료 시점 순위/점수 스냅샷 저장 | 과거 대회 리더보드 재계산 방지 (O(1) 조회) |
 | Flutter OAuth | 웹과 동일한 provider (Google, Kakao 등) | 기존 백엔드 OAuth 인프라 재활용 |
 | 이벤트 순서 변경 | 기록(Score)이 1건이라도 존재하면 `order` 변경 불가 (400 반환) | 순위 일관성 보장 |
