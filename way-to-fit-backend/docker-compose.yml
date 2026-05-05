@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: waytofit-postgres
+    environment:
+      POSTGRES_DB: waytofit
+      POSTGRES_USER: waytofit
+      POSTGRES_PASSWORD: waytofit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waytofit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
