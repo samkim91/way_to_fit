@@ -19,6 +19,7 @@ import type {
   PaymentStatus,
   ScoreStatus,
   RegistrationType,
+  CompetitionStatus,
 } from './types';
 
 // ─── Shared helper ────────────────────────────────────────────────────────────
@@ -29,8 +30,14 @@ const unwrap = <T>(response: { data: { data: T } }) => response.data.data;
 
 export const competitionApi = {
   /** 내 대회 목록 (DRAFT 포함) */
-  getMyCompetitions: () =>
-    apiClient.get<{ data: Competition[] }>('/competitions/my').then(unwrap),
+  getMyCompetitions: (params?: {
+    statuses?: CompetitionStatus[];
+    page?: number;
+    size?: number;
+  }) =>
+    apiClient
+      .get<{ data: Page<Competition> }>('/competitions/my', { params })
+      .then(unwrap),
 
   /** 공개 대회 목록 (DRAFT 제외, 페이징) */
   getCompetitions: (page = 0, size = 20) =>

@@ -11,6 +11,7 @@ import com.waytofit.competition.domain.Competition
 import com.waytofit.competition.domain.enums.CompetitionStatus
 import com.waytofit.global.common.response.ResponseCode
 import com.waytofit.global.error.BusinessException
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -25,6 +26,8 @@ class CompetitionService(
     private val competitionOrganizerRepository: CompetitionOrganizerRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) : CompetitionCommandUseCase, CompetitionQueryUseCase {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun createCompetition(command: CreateCompetitionCommand, creatorId: UUID): Competition {
         val competition = Competition(
@@ -95,6 +98,17 @@ class CompetitionService(
 
     @Transactional(readOnly = true)
     override fun getMyCompetitions(userId: UUID, statuses: List<CompetitionStatus>?, pageable: Pageable): Page<Competition> {
-        return competitionRepository.findMyCompetitions(userId, statuses, pageable)
+        log.debug("Loading my competitions: userId={}, statuses={}, pageable={}", userId, statuses, pageable)
+        val page = competitionRepository.findMyCompetitions(userId, statuses, pageable)
+        log.debug(
+            "Loaded my competitions: userId={}, statuses={}, page={}, size={}, contentSize={}, totalElements={}",
+            userId,
+            statuses,
+            pageable.pageNumber,
+            pageable.pageSize,
+            page.content.size,
+            page.totalElements
+        )
+        return page
     }
 }

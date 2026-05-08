@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 
-interface CompetitionJpaRepository : JpaRepository<CompetitionEntity, UUID> {
+interface CompetitionJpaRepository : JpaRepository<CompetitionEntity, UUID>, CompetitionCustomRepository {
     fun findAllByStatusNot(status: CompetitionStatus, pageable: Pageable): Page<CompetitionEntity>
     fun findAllByIdIn(ids: List<UUID>): List<CompetitionEntity>
 }

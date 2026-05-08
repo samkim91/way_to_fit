@@ -32,6 +32,6 @@ class CompetitionPersistenceAdapter(
     }
 
     override fun findMyCompetitions(userId: UUID, statuses: List<CompetitionStatus>?, pageable: Pageable): Page<Competition> {
-        return Page.empty()
+        return jpaRepository.findMyCompetitions(userId, statuses, pageable).map { it.toDomain() }
     }
 }

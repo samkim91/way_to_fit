@@ -5,6 +5,7 @@ import com.waytofit.competition.adapter.`in`.web.dto.CreateCompetitionRequest
 import com.waytofit.competition.adapter.`in`.web.dto.UpdateCompetitionRequest
 import com.waytofit.competition.application.port.`in`.CompetitionCommandUseCase
 import com.waytofit.competition.application.port.`in`.CompetitionQueryUseCase
+import com.waytofit.competition.domain.enums.CompetitionStatus
 import com.waytofit.global.common.response.ApiResponse
 import com.waytofit.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
