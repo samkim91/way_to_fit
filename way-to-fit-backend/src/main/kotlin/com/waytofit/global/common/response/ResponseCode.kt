@@ -58,5 +58,10 @@ enum class ResponseCode(
     WOD_NOT_TEAM_MODE(HttpStatus.BAD_REQUEST, "5007", "팀전 모드가 아닌 WOD입니다."),
     WOD_SCALE_GROUP_CHANGE_BLOCKED(HttpStatus.CONFLICT, "5008", "기록이 있는 스케일 그룹의 ID는 변경할 수 없습니다."),
     WOD_NOT_PUBLISHED(HttpStatus.BAD_REQUEST, "5009", "아직 발행되지 않은 WOD입니다."),
+
+    // Competition (6000 ~ 6999)
+    COMPETITION_REGISTRATION_DATE_INVALID(HttpStatus.BAD_REQUEST, "6000", "신청 시작일은 신청 마감일보다 빨라야 합니다."),
+    COMPETITION_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "6001", "대회 시작일은 대회 종료일 이전이거나 같아야 합니다."),
+    COMPETITION_REGISTRATION_END_INVALID(HttpStatus.BAD_REQUEST, "6002", "신청 마감일은 대회 종료일 이전이거나 같아야 합니다."),
     ;
 }
