@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { useAuthStore, type GlobalRole } from '@/store/auth.store';
 
 interface NavigationItem {
   name: string;
@@ -19,6 +20,7 @@ interface NavigationItem {
 interface NavigationSection {
   items: NavigationItem[];
   dividerBefore?: boolean;
+  allowedRoles?: GlobalRole[];
 }
 
 const navigationSections: NavigationSection[] = [
@@ -29,6 +31,7 @@ const navigationSections: NavigationSection[] = [
   },
   {
     dividerBefore: true,
+    allowedRoles: ['ORGANIZER', 'SUPER_ADMIN'],
     items: [{ name: '대회 관리', href: '/competitions', icon: Trophy }],
   },
 ];
@@ -36,6 +39,13 @@ const navigationSections: NavigationSection[] = [
 export function Sidebar() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useAuthStore();
+
+  const visibleSections = navigationSections.filter(
+    (section) =>
+      !section.allowedRoles ||
+      (user?.role && section.allowedRoles.includes(user.role)),
+  );
 
   return (
     <aside
@@ -81,7 +91,7 @@ export function Sidebar() {
           )}
         </button>
 
-        {navigationSections.map((section, sectionIdx) => (
+        {visibleSections.map((section, sectionIdx) => (
           <div key={sectionIdx}>
             {section.dividerBefore && (
               <div className="my-2 h-px bg-sidebar-border" />

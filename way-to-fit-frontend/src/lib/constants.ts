@@ -2,6 +2,7 @@ export const ACCESS_TOKEN_KEY = 'access_token';
 
 export const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: '최고 관리자',
+  ORGANIZER: '대회 주최자',
   USER: '사용자',
 };
 

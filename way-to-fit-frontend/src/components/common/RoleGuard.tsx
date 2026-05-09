@@ -9,7 +9,7 @@ interface RoleGuardProps {
   fallbackTo?: string; // 권한 없을 시 리다이렉트할 경로 (기본: 메인 페이지)
 }
 
-export function RoleGuard({ children, allowedRoles, fallbackTo = '/' }: RoleGuardProps) {
+export function RoleGuard({ children, allowedRoles, fallbackTo = '/forbidden' }: RoleGuardProps) {
   const { user } = useAuthStore();
   const currentRole = user?.role;
 

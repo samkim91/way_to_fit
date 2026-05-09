@@ -6,9 +6,11 @@ import com.waytofit.user.application.port.`in`.UserCommandUseCase
 import com.waytofit.user.application.port.out.UserPersistencePort
 import com.waytofit.user.domain.User
 import com.waytofit.user.domain.enums.OAuthProvider
+import com.waytofit.user.domain.enums.UserRole
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class UserCommandService(
@@ -29,5 +31,12 @@ class UserCommandService(
             userRepository.findByOauthProviderAndOauthId(oauthProvider, oauthId)
                 ?: throw BusinessException(ResponseCode.USER_DATA_INTEGRITY_VIOLATION)
         }
+    }
+
+    @Transactional
+    override fun updateRole(userId: UUID, role: UserRole): User {
+        val user = userRepository.findById(userId)
+            ?: throw BusinessException(ResponseCode.USER_NOT_FOUND)
+        return userRepository.save(user.copy(role = role))
     }
 }

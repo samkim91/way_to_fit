@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ACCESS_TOKEN_KEY } from '@/lib/constants';
 
-export type GlobalRole = 'USER' | 'SUPER_ADMIN';
+export type GlobalRole = 'USER' | 'ORGANIZER' | 'SUPER_ADMIN';
 
 interface User {
   id: string;

@@ -43,6 +43,8 @@ class SecurityConfig(
                 it.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/competitions/my").authenticated()
                 it.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/competitions/**").permitAll()
                 it.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/athletes/**").permitAll()
+                it.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/competitions").hasAnyRole("ORGANIZER", "SUPER_ADMIN")
+                it.requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/competitions/**").hasAnyRole("ORGANIZER", "SUPER_ADMIN")
                 it.requestMatchers("/api/v1/super-admin/**").hasRole("SUPER_ADMIN")
                 it.anyRequest().authenticated()
             }
