@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
+import { DateTimeRangePicker } from '@/components/ui/date-time-range-picker';
 import { stageApi } from '@/features/competition/api';
 import { stageFormatLabels, stageTypeLabels } from '@/features/competition/labels';
 import type { CompetitionStage, StageFormat, StageType } from '@/features/competition/types';
@@ -137,23 +137,24 @@ export function StageFormDialog({ open, onOpenChange, competitionId, stage }: St
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>시작일시 *</Label>
-              <DateTimePicker
-                value={formData.startAt ? new Date(formData.startAt) : undefined}
-                onChange={(date) => setFormData((p) => ({ ...p, startAt: date ? date.toISOString() : '' }))}
-              />
-              {errors.startAt && <p className="text-xs text-destructive">{errors.startAt}</p>}
-            </div>
-            <div className="space-y-1">
-              <Label>종료일시 *</Label>
-              <DateTimePicker
-                value={formData.endAt ? new Date(formData.endAt) : undefined}
-                onChange={(date) => setFormData((p) => ({ ...p, endAt: date ? date.toISOString() : '' }))}
-              />
-              {errors.endAt && <p className="text-xs text-destructive">{errors.endAt}</p>}
-            </div>
+          <div className="space-y-1">
+            <Label>Stage 기간 *</Label>
+            <DateTimeRangePicker
+              value={{
+                from: formData.startAt ? new Date(formData.startAt) : undefined,
+                to: formData.endAt ? new Date(formData.endAt) : undefined,
+              }}
+              onChange={(range) =>
+                setFormData((p) => ({
+                  ...p,
+                  startAt: range?.from ? range.from.toISOString() : '',
+                  endAt: range?.to ? range.to.toISOString() : '',
+                }))
+              }
+              placeholder="시작일시와 종료일시 선택"
+            />
+            {errors.startAt && <p className="text-xs text-destructive">{errors.startAt}</p>}
+            {errors.endAt && <p className="text-xs text-destructive">{errors.endAt}</p>}
           </div>
 
           <div className="flex justify-end space-x-2 pt-2">

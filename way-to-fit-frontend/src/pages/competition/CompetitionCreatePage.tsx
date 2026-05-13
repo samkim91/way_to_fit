@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DateTimeRangePicker } from '@/components/ui/date-time-range-picker';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { competitionApi } from '@/features/competition/api';
 
 export function CompetitionCreatePage() {
@@ -81,23 +81,22 @@ export function CompetitionCreatePage() {
               <Label htmlFor="description">설명</Label>
               <Textarea id="description" name="description" value={formData.description} onChange={handleChange} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startAt">대회 시작일 *</Label>
-                <DatePicker
-                  value={formData.startAt ? new Date(formData.startAt) : undefined}
-                  onChange={(date) => setFormData((prev) => ({ ...prev, startAt: date ? date.toISOString() : '' }))}
-                  placeholder="시작일 선택"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endAt">대회 종료일 *</Label>
-                <DatePicker
-                  value={formData.endAt ? new Date(formData.endAt) : undefined}
-                  onChange={(date) => setFormData((prev) => ({ ...prev, endAt: date ? date.toISOString() : '' }))}
-                  placeholder="종료일 선택"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="startAt">대회 기간 *</Label>
+              <DateRangePicker
+                value={{
+                  from: formData.startAt ? new Date(formData.startAt) : undefined,
+                  to: formData.endAt ? new Date(formData.endAt) : undefined,
+                }}
+                onChange={(range) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    startAt: range?.from ? range.from.toISOString() : '',
+                    endAt: range?.to ? range.to.toISOString() : '',
+                  }))
+                }
+                placeholder="시작일과 종료일 선택"
+              />
             </div>
           </CardContent>
         </Card>
@@ -106,23 +105,22 @@ export function CompetitionCreatePage() {
           <CardHeader>
             <CardTitle>참가 신청 기간</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="registrationStartAt">신청 시작 *</Label>
-              <DateTimePicker
-                value={formData.registrationStartAt ? new Date(formData.registrationStartAt) : undefined}
-                onChange={(date) => setFormData((prev) => ({ ...prev, registrationStartAt: date ? date.toISOString() : '' }))}
-                placeholder="신청 시작일 선택"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="registrationEndAt">신청 마감 *</Label>
-              <DateTimePicker
-                value={formData.registrationEndAt ? new Date(formData.registrationEndAt) : undefined}
-                onChange={(date) => setFormData((prev) => ({ ...prev, registrationEndAt: date ? date.toISOString() : '' }))}
-                placeholder="신청 마감일 선택"
-              />
-            </div>
+          <CardContent className="space-y-2">
+            <Label htmlFor="registrationStartAt">신청 기간 *</Label>
+            <DateTimeRangePicker
+              value={{
+                from: formData.registrationStartAt ? new Date(formData.registrationStartAt) : undefined,
+                to: formData.registrationEndAt ? new Date(formData.registrationEndAt) : undefined,
+              }}
+              onChange={(range) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  registrationStartAt: range?.from ? range.from.toISOString() : '',
+                  registrationEndAt: range?.to ? range.to.toISOString() : '',
+                }))
+              }
+              placeholder="신청 시작일시와 마감일시 선택"
+            />
           </CardContent>
         </Card>
 
