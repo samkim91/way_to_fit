@@ -1,7 +1,8 @@
 package com.waytofit.competition.application.port.`in`
 
 import com.waytofit.competition.domain.Competition
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionLifecycle
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.Instant
@@ -13,9 +14,9 @@ interface CompetitionCommandUseCase {
 }
 
 interface CompetitionQueryUseCase {
-    fun getCompetition(id: UUID): Competition
+    fun getCompetition(id: UUID, userId: UUID?): Competition
     fun getCompetitions(pageable: Pageable): Page<Competition>
-    fun getMyCompetitions(userId: UUID, statuses: List<CompetitionStatus>?, pageable: Pageable): Page<Competition>
+    fun getMyCompetitions(userId: UUID, lifecycles: List<CompetitionLifecycle>?, pageable: Pageable): Page<Competition>
 }
 
 data class CreateCompetitionCommand(
@@ -41,7 +42,7 @@ data class UpdateCompetitionCommand(
     val endAt: Instant?,
     val registrationStartAt: Instant?,
     val registrationEndAt: Instant?,
-    val status: CompetitionStatus?,
+    val visibility: CompetitionVisibility?,
     val bankName: String?,
     val accountNumber: String?,
     val accountHolder: String?,

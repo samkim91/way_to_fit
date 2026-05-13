@@ -2,7 +2,7 @@ package com.waytofit.competition.adapter.out.persistence.entity
 
 import com.waytofit.competition.domain.BankInfo
 import com.waytofit.competition.domain.Competition
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import com.waytofit.global.domain.AuditInfo
 import com.waytofit.global.persistence.BaseEntity
 import jakarta.persistence.*
@@ -42,8 +42,8 @@ class CompetitionEntity(
     val registrationEndAt: Instant,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    val status: CompetitionStatus,
+    @Column(name = "visibility")
+    val visibility: CompetitionVisibility? = null,
 
     @Embedded
     @AttributeOverrides(
@@ -64,7 +64,7 @@ class CompetitionEntity(
         endAt = endAt,
         registrationStartAt = registrationStartAt,
         registrationEndAt = registrationEndAt,
-        status = status,
+        visibility = visibility ?: CompetitionVisibility.PRIVATE,
         bankInfo = bankInfo,
         audit = AuditInfo(
             createdAt = createdAt,
@@ -84,7 +84,7 @@ class CompetitionEntity(
             endAt = competition.endAt,
             registrationStartAt = competition.registrationStartAt,
             registrationEndAt = competition.registrationEndAt,
-            status = competition.status,
+            visibility = competition.visibility,
             bankInfo = competition.bankInfo
         )
     }

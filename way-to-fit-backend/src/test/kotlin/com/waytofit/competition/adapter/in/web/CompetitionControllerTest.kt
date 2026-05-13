@@ -5,7 +5,7 @@ import com.waytofit.competition.adapter.out.persistence.entity.CompetitionOrgani
 import com.waytofit.competition.adapter.out.persistence.repository.CompetitionJpaRepository
 import com.waytofit.competition.adapter.out.persistence.repository.CompetitionOrganizerJpaRepository
 import com.waytofit.competition.domain.BankInfo
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,7 +61,7 @@ class CompetitionControllerTest {
                 endAt = Instant.parse("2026-06-02T00:00:00Z"),
                 registrationStartAt = Instant.parse("2026-05-01T00:00:00Z"),
                 registrationEndAt = Instant.parse("2026-05-20T00:00:00Z"),
-                status = CompetitionStatus.PUBLISHED,
+                visibility = CompetitionVisibility.PUBLIC,
                 bankInfo = BankInfo(
                     bankName = "테스트은행",
                     accountNumber = "123-456",
@@ -83,6 +83,7 @@ class CompetitionControllerTest {
             .andExpect(jsonPath("$.data.content.length()").value(1))
             .andExpect(jsonPath("$.data.content[0].id").value(competition.id.toString()))
             .andExpect(jsonPath("$.data.content[0].name").value("2026 서머 핏"))
+            .andExpect(jsonPath("$.data.content[0].visibility").value("PUBLIC"))
             .andExpect(jsonPath("$.data.totalElements").value(1))
     }
 
@@ -97,7 +98,7 @@ class CompetitionControllerTest {
                 endAt = Instant.parse("2026-06-02T00:00:00Z"),
                 registrationStartAt = Instant.parse("2026-05-01T00:00:00Z"),
                 registrationEndAt = Instant.parse("2026-05-20T00:00:00Z"),
-                status = CompetitionStatus.PUBLISHED,
+                visibility = CompetitionVisibility.PUBLIC,
                 bankInfo = BankInfo(
                     bankName = "테스트은행",
                     accountNumber = "123-456",

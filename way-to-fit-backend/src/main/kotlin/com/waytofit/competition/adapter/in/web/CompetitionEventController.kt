@@ -5,6 +5,7 @@ import com.waytofit.competition.adapter.`in`.web.dto.CreateEventRequest
 import com.waytofit.competition.adapter.`in`.web.dto.UpdateEventRequest
 import com.waytofit.competition.application.port.`in`.CompetitionEventCommandUseCase
 import com.waytofit.competition.application.port.`in`.CompetitionEventQueryUseCase
+import com.waytofit.competition.application.port.`in`.CompetitionQueryUseCase
 import com.waytofit.global.common.response.ApiResponse
 import com.waytofit.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -18,6 +19,7 @@ import java.util.UUID
 class CompetitionEventController(
     private val eventCommandUseCase: CompetitionEventCommandUseCase,
     private val eventQueryUseCase: CompetitionEventQueryUseCase,
+    private val competitionQueryUseCase: CompetitionQueryUseCase,
 ) {
 
     @Operation(summary = "이벤트 생성")
@@ -42,6 +44,7 @@ class CompetitionEventController(
         val events = if (userId != null && eventQueryUseCase.isOrganizer(competitionId, userId)) {
             eventQueryUseCase.getEventsByStageId(stageId, true)
         } else {
+            competitionQueryUseCase.getCompetition(competitionId, userId)
             eventQueryUseCase.getEventsByStageId(stageId, false)
         }
         return ApiResponse.success(events.map { CompetitionEventResponse.fromDomain(it) })

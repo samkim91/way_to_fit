@@ -1,7 +1,9 @@
 package com.waytofit.competition.domain
 
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionLifecycle
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import com.waytofit.global.common.response.ResponseCode
+import org.assertj.core.api.Assertions.assertThat
 import com.waytofit.global.error.BusinessException
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -22,7 +24,7 @@ class CompetitionTest {
             endAt = now.plus(11, ChronoUnit.DAYS),
             registrationStartAt = now.plus(1, ChronoUnit.DAYS),
             registrationEndAt = now.plus(5, ChronoUnit.DAYS),
-            status = CompetitionStatus.DRAFT,
+            visibility = CompetitionVisibility.PRIVATE,
             bankInfo = bankInfo
         )
     }
@@ -37,7 +39,7 @@ class CompetitionTest {
                 endAt = now.plus(11, ChronoUnit.DAYS),
                 registrationStartAt = now.plus(5, ChronoUnit.DAYS),
                 registrationEndAt = now.plus(1, ChronoUnit.DAYS),
-                status = CompetitionStatus.DRAFT,
+                visibility = CompetitionVisibility.PRIVATE,
                 bankInfo = bankInfo
             )
         }.isInstanceOf(BusinessException::class.java)
@@ -54,7 +56,7 @@ class CompetitionTest {
                 endAt = now.plus(10, ChronoUnit.DAYS),
                 registrationStartAt = now.plus(1, ChronoUnit.DAYS),
                 registrationEndAt = now.plus(5, ChronoUnit.DAYS),
-                status = CompetitionStatus.DRAFT,
+                visibility = CompetitionVisibility.PRIVATE,
                 bankInfo = bankInfo
             )
         }.isInstanceOf(BusinessException::class.java)
@@ -71,7 +73,7 @@ class CompetitionTest {
                 endAt = now.plus(11, ChronoUnit.DAYS),
                 registrationStartAt = now.plus(1, ChronoUnit.DAYS),
                 registrationEndAt = now.plus(12, ChronoUnit.DAYS),
-                status = CompetitionStatus.DRAFT,
+                visibility = CompetitionVisibility.PRIVATE,
                 bankInfo = bankInfo
             )
         }.isInstanceOf(BusinessException::class.java)
@@ -87,8 +89,25 @@ class CompetitionTest {
             endAt = now.plus(15, ChronoUnit.DAYS),
             registrationStartAt = now.plus(1, ChronoUnit.DAYS),
             registrationEndAt = now.plus(12, ChronoUnit.DAYS),
-            status = CompetitionStatus.DRAFT,
+            visibility = CompetitionVisibility.PRIVATE,
             bankInfo = bankInfo
         )
+    }
+
+    @Test
+    fun `신청 기간과 대회 기간이 겹쳐도 시작 이후에는 진행중 상태가 우선이다`() {
+        val competition = Competition(
+            name = "Overlap",
+            description = "Desc",
+            startAt = now.plus(1, ChronoUnit.DAYS),
+            endAt = now.plus(5, ChronoUnit.DAYS),
+            registrationStartAt = now.minus(1, ChronoUnit.DAYS),
+            registrationEndAt = now.plus(2, ChronoUnit.DAYS),
+            visibility = CompetitionVisibility.PUBLIC,
+            bankInfo = bankInfo
+        )
+
+        assertThat(competition.lifecycleAt(now.plus(36, ChronoUnit.HOURS)))
+            .isEqualTo(CompetitionLifecycle.IN_PROGRESS)
     }
 }

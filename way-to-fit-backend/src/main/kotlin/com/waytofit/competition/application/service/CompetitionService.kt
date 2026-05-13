@@ -8,7 +8,8 @@ import com.waytofit.competition.application.port.out.CompetitionOrganizerReposit
 import com.waytofit.competition.application.port.out.CompetitionRepository
 import com.waytofit.competition.domain.BankInfo
 import com.waytofit.competition.domain.Competition
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionLifecycle
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import com.waytofit.global.common.response.ResponseCode
 import com.waytofit.global.error.BusinessException
 import org.slf4j.LoggerFactory
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -25,6 +28,7 @@ class CompetitionService(
     private val competitionRepository: CompetitionRepository,
     private val competitionOrganizerRepository: CompetitionOrganizerRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val clock: Clock,
 ) : CompetitionCommandUseCase, CompetitionQueryUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -38,7 +42,7 @@ class CompetitionService(
             endAt = command.endAt,
             registrationStartAt = command.registrationStartAt,
             registrationEndAt = command.registrationEndAt,
-            status = CompetitionStatus.DRAFT,
+            visibility = CompetitionVisibility.PRIVATE,
             bankInfo = BankInfo(
                 bankName = command.bankName,
                 accountNumber = command.accountNumber,
@@ -67,7 +71,7 @@ class CompetitionService(
             endAt = command.endAt ?: competition.endAt,
             registrationStartAt = command.registrationStartAt ?: competition.registrationStartAt,
             registrationEndAt = command.registrationEndAt ?: competition.registrationEndAt,
-            status = command.status ?: competition.status,
+            visibility = command.visibility ?: competition.visibility,
             bankInfo = competition.bankInfo.copy(
                 bankName = command.bankName ?: competition.bankInfo.bankName,
                 accountNumber = command.accountNumber ?: competition.bankInfo.accountNumber,
@@ -78,7 +82,10 @@ class CompetitionService(
 
         val savedCompetition = competitionRepository.save(updatedCompetition)
 
-        if (competition.status != CompetitionStatus.COMPLETED && savedCompetition.status == CompetitionStatus.COMPLETED) {
+        val now = Instant.now(clock)
+        if (competition.lifecycleAt(now) != CompetitionLifecycle.COMPLETED &&
+            savedCompetition.lifecycleAt(now) == CompetitionLifecycle.COMPLETED
+        ) {
             eventPublisher.publishEvent(com.waytofit.competition.domain.event.CompetitionCompletedEvent(savedCompetition.id!!))
         }
 
@@ -86,24 +93,34 @@ class CompetitionService(
     }
 
     @Transactional(readOnly = true)
-    override fun getCompetition(id: UUID): Competition {
-        return competitionRepository.findById(id)
+    override fun getCompetition(id: UUID, userId: UUID?): Competition {
+        val competition = competitionRepository.findById(id)
             ?: throw BusinessException(ResponseCode.NOT_FOUND)
+
+        if (competition.isPubliclyVisible()) {
+            return competition
+        }
+
+        if (userId != null && competitionOrganizerRepository.isOrganizer(competition.id!!, userId)) {
+            return competition
+        }
+
+        throw BusinessException(ResponseCode.NOT_FOUND)
     }
 
     @Transactional(readOnly = true)
     override fun getCompetitions(pageable: Pageable): Page<Competition> {
-        return competitionRepository.findAllExcludingDrafts(pageable)
+        return competitionRepository.findAllPublic(pageable)
     }
 
     @Transactional(readOnly = true)
-    override fun getMyCompetitions(userId: UUID, statuses: List<CompetitionStatus>?, pageable: Pageable): Page<Competition> {
-        log.debug("Loading my competitions: userId={}, statuses={}, pageable={}", userId, statuses, pageable)
-        val page = competitionRepository.findMyCompetitions(userId, statuses, pageable)
+    override fun getMyCompetitions(userId: UUID, lifecycles: List<CompetitionLifecycle>?, pageable: Pageable): Page<Competition> {
+        log.debug("Loading my competitions: userId={}, lifecycles={}, pageable={}", userId, lifecycles, pageable)
+        val page = competitionRepository.findMyCompetitions(userId, lifecycles, Instant.now(clock), pageable)
         log.debug(
-            "Loaded my competitions: userId={}, statuses={}, page={}, size={}, contentSize={}, totalElements={}",
+            "Loaded my competitions: userId={}, lifecycles={}, page={}, size={}, contentSize={}, totalElements={}",
             userId,
-            statuses,
+            lifecycles,
             pageable.pageNumber,
             pageable.pageSize,
             page.content.size,

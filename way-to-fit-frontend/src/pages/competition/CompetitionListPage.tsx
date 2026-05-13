@@ -5,21 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { competitionApi } from '@/features/competition/api';
 import { CompetitionStatusBadge } from '@/features/competition/components/CompetitionStatusBadge';
-import type { CompetitionStatus } from '@/features/competition/types';
+import { CompetitionVisibilityBadge } from '@/features/competition/components/CompetitionVisibilityBadge';
+import type { CompetitionLifecycle } from '@/features/competition/types';
 import { useState } from 'react';
 
 const PAGE_SIZE = 20;
 
 export function CompetitionListPage() {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<'ALL' | CompetitionStatus>('ALL');
+  const [filter, setFilter] = useState<'ALL' | CompetitionLifecycle>('ALL');
   const [page, setPage] = useState(0);
 
   const { data: pageData, isLoading, isFetching } = useQuery({
     queryKey: ['my-competitions', filter, page, PAGE_SIZE],
     queryFn: () =>
       competitionApi.getMyCompetitions({
-        statuses: filter === 'ALL' ? undefined : [filter],
+        lifecycles: filter === 'ALL' ? undefined : [filter],
         page,
         size: PAGE_SIZE,
       }),
@@ -32,7 +33,7 @@ export function CompetitionListPage() {
   const totalPages = pageData?.totalPages ?? 0;
   const totalElements = pageData?.totalElements ?? 0;
 
-  const handleFilterChange = (nextFilter: 'ALL' | CompetitionStatus) => {
+  const handleFilterChange = (nextFilter: 'ALL' | CompetitionLifecycle) => {
     setFilter(nextFilter);
     setPage(0);
   };
@@ -118,7 +119,10 @@ export function CompetitionListPage() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="line-clamp-2 text-lg">{competition.name}</CardTitle>
-                    <CompetitionStatusBadge status={competition.status} />
+                    <div className="flex items-center gap-2">
+                      <CompetitionVisibilityBadge visibility={competition.visibility} />
+                      <CompetitionStatusBadge status={competition.lifecycle} />
+                    </div>
                   </div>
                   <CardDescription className="line-clamp-1 mt-2">
                     {competition.description}
@@ -149,7 +153,7 @@ export function CompetitionListPage() {
                     >
                       기록 판독
                     </Button>
-                    {competition.status === 'DRAFT' ? (
+                    {competition.visibility === 'PRIVATE' ? (
                       <Button
                         variant="secondary"
                         className="flex-1"

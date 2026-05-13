@@ -6,8 +6,6 @@ import com.waytofit.competition.adapter.`in`.web.dto.EventScoreItem
 import com.waytofit.competition.application.port.`in`.*
 import com.waytofit.competition.application.port.out.*
 import com.waytofit.competition.domain.AthleteProfile
-import com.waytofit.competition.domain.enums.CompetitionStatus
-import com.waytofit.competition.domain.enums.StageType
 import com.waytofit.global.common.response.ResponseCode
 import com.waytofit.global.error.BusinessException
 import com.waytofit.user.application.port.out.UserPersistencePort

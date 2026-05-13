@@ -19,7 +19,7 @@ import type {
   PaymentStatus,
   ScoreStatus,
   RegistrationType,
-  CompetitionStatus,
+  CompetitionLifecycle,
 } from './types';
 
 // ─── Shared helper ────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ const unwrap = <T>(response: { data: { data: T } }) => response.data.data;
 export const competitionApi = {
   /** 내 대회 목록 (DRAFT 포함) */
   getMyCompetitions: (params?: {
-    statuses?: CompetitionStatus[];
+    lifecycles?: CompetitionLifecycle[];
     page?: number;
     size?: number;
   }) =>

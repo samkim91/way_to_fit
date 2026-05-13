@@ -1,7 +1,6 @@
 package com.waytofit.competition.domain.enums
 
-enum class CompetitionStatus {
-    DRAFT,
+enum class CompetitionLifecycle {
     PUBLISHED,
     REGISTRATION_OPEN,
     REGISTRATION_CLOSED,

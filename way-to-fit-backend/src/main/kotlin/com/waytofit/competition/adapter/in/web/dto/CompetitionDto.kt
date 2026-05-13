@@ -1,7 +1,8 @@
 package com.waytofit.competition.adapter.`in`.web.dto
 
 import com.waytofit.competition.domain.Competition
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionLifecycle
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import java.time.Instant
 import java.util.UUID
 
@@ -40,7 +41,7 @@ data class UpdateCompetitionRequest(
     val endAt: Instant?,
     val registrationStartAt: Instant?,
     val registrationEndAt: Instant?,
-    val status: CompetitionStatus?,
+    val visibility: CompetitionVisibility?,
     val bankName: String?,
     val accountNumber: String?,
     val accountHolder: String?,
@@ -55,7 +56,7 @@ data class UpdateCompetitionRequest(
         endAt = endAt,
         registrationStartAt = registrationStartAt,
         registrationEndAt = registrationEndAt,
-        status = status,
+        visibility = visibility,
         bankName = bankName,
         accountNumber = accountNumber,
         accountHolder = accountHolder,
@@ -72,7 +73,8 @@ data class CompetitionResponse(
     val endAt: Instant,
     val registrationStartAt: Instant,
     val registrationEndAt: Instant,
-    val status: CompetitionStatus,
+    val visibility: CompetitionVisibility,
+    val lifecycle: CompetitionLifecycle,
     val bankName: String,
     val accountNumber: String,
     val accountHolder: String,
@@ -81,7 +83,7 @@ data class CompetitionResponse(
     val createdAt: Instant?,
 ) {
     companion object {
-        fun fromDomain(competition: Competition) = CompetitionResponse(
+        fun fromDomain(competition: Competition, now: Instant) = CompetitionResponse(
             id = competition.id!!,
             name = competition.name,
             description = competition.description,
@@ -89,7 +91,8 @@ data class CompetitionResponse(
             endAt = competition.endAt,
             registrationStartAt = competition.registrationStartAt,
             registrationEndAt = competition.registrationEndAt,
-            status = competition.status,
+            visibility = competition.visibility,
+            lifecycle = competition.lifecycleAt(now),
             bankName = competition.bankInfo.bankName,
             accountNumber = competition.bankInfo.accountNumber,
             accountHolder = competition.bankInfo.accountHolder,

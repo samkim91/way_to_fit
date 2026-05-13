@@ -1,5 +1,6 @@
 import type {
-  CompetitionStatus,
+  CompetitionLifecycle,
+  CompetitionVisibility,
   EventType,
   GenderCategory,
   PaymentStatus,
@@ -9,17 +10,17 @@ import type {
   WodType,
 } from './types';
 
-const COMPETITION_STATUS_VALUES = [
-  'DRAFT',
+const COMPETITION_LIFECYCLE_VALUES = [
   'PUBLISHED',
   'REGISTRATION_OPEN',
   'REGISTRATION_CLOSED',
   'IN_PROGRESS',
   'COMPLETED',
-] as const satisfies readonly CompetitionStatus[];
+] as const satisfies readonly CompetitionLifecycle[];
 
-export const competitionStatusLabels: Record<CompetitionStatus, string> = {
-  DRAFT: '작성 중',
+const COMPETITION_VISIBILITY_VALUES = ['PUBLIC', 'PRIVATE'] as const satisfies readonly CompetitionVisibility[];
+
+export const competitionLifecycleLabels: Record<CompetitionLifecycle, string> = {
   PUBLISHED: '공개됨',
   REGISTRATION_OPEN: '신청중',
   REGISTRATION_CLOSED: '신청 마감',
@@ -27,15 +28,27 @@ export const competitionStatusLabels: Record<CompetitionStatus, string> = {
   COMPLETED: '종료',
 };
 
-export const competitionStatusOptions = COMPETITION_STATUS_VALUES.map((value) => ({
+export const competitionLifecycleOptions = COMPETITION_LIFECYCLE_VALUES.map((value) => ({
   value,
-  label: competitionStatusLabels[value],
+  label: competitionLifecycleLabels[value],
 }));
 
-export function normalizeCompetitionStatus(value: string | null | undefined): CompetitionStatus {
-  return COMPETITION_STATUS_VALUES.includes(value as CompetitionStatus)
-    ? (value as CompetitionStatus)
-    : 'DRAFT';
+export const competitionVisibilityLabels: Record<CompetitionVisibility, string> = {
+  PUBLIC: '공개',
+  PRIVATE: '비공개',
+};
+
+export const competitionVisibilityOptions = COMPETITION_VISIBILITY_VALUES.map((value) => ({
+  value,
+  label: competitionVisibilityLabels[value],
+}));
+
+export function normalizeCompetitionVisibility(
+  value: string | null | undefined,
+): CompetitionVisibility {
+  return COMPETITION_VISIBILITY_VALUES.includes(value as CompetitionVisibility)
+    ? (value as CompetitionVisibility)
+    : 'PRIVATE';
 }
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {

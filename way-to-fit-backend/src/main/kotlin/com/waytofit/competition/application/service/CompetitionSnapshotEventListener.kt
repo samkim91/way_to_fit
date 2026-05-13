@@ -5,13 +5,15 @@ import com.waytofit.competition.application.port.`in`.GetOverallLeaderboardQuery
 import com.waytofit.competition.application.port.out.*
 import com.waytofit.competition.domain.CompetitionHistorySnapshot
 import com.waytofit.competition.domain.EventScoreSnapshot
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionLifecycle
 import com.waytofit.competition.domain.enums.StageType
 import com.waytofit.competition.domain.event.CompetitionCompletedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 
 @Component
@@ -23,7 +25,8 @@ class CompetitionSnapshotEventListener(
     private val eventRepository: CompetitionEventRepository,
     private val leaderboardService: LeaderboardService,
     private val snapshotRepository: CompetitionHistorySnapshotRepository,
-    private val userPersistencePort: com.waytofit.user.application.port.out.UserPersistencePort
+    private val userPersistencePort: com.waytofit.user.application.port.out.UserPersistencePort,
+    private val clock: Clock,
 ) {
 
     @Async
@@ -33,7 +36,7 @@ class CompetitionSnapshotEventListener(
         if (snapshotRepository.existsByCompetitionId(event.competitionId)) return
 
         val competition = competitionRepository.findById(event.competitionId) ?: return
-        if (competition.status != CompetitionStatus.COMPLETED) return
+        if (competition.lifecycleAt(Instant.now(clock)) != CompetitionLifecycle.COMPLETED) return
 
         val registrations = registrationRepository.findRegistrationsByCompetitionId(competition.id!!, null, org.springframework.data.domain.Pageable.unpaged()).content
         if (registrations.isEmpty()) return

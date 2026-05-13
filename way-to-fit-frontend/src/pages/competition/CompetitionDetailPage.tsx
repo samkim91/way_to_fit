@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, Outlet, useNavigate } from 'react-router-
 import { Button } from '@/components/ui/button';
 import { competitionApi } from '@/features/competition/api';
 import { CompetitionStatusBadge } from '@/features/competition/components/CompetitionStatusBadge';
+import { CompetitionVisibilityBadge } from '@/features/competition/components/CompetitionVisibilityBadge';
 
 import { ConfigTab } from '@/features/competition/components/ConfigTab';
 import { RegistrationsTab } from '@/features/competition/components/RegistrationsTab';
@@ -37,7 +38,8 @@ export function CompetitionDetailPage() {
           ← 대회 목록
         </Button>
         <h1 className="text-2xl font-bold">{competition.name}</h1>
-        <CompetitionStatusBadge status={competition.status} />
+        <CompetitionVisibilityBadge visibility={competition.visibility} />
+        <CompetitionStatusBadge status={competition.lifecycle} />
         <div className="flex-1" />
         <Button variant="outline" onClick={() => navigate(`/competitions/${competitionId}/edit`)}>
           대회 편집

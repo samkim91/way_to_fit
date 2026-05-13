@@ -6,7 +6,7 @@ import com.waytofit.competition.application.port.out.CompetitionOrganizerReposit
 import com.waytofit.competition.application.port.out.CompetitionRepository
 import com.waytofit.competition.domain.BankInfo
 import com.waytofit.competition.domain.Competition
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import com.waytofit.global.error.BusinessException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Clock
 import java.time.Instant
 import java.util.UUID
 
@@ -22,7 +23,12 @@ class CompetitionServiceTest {
     private val competitionRepository = mock(CompetitionRepository::class.java)
     private val competitionOrganizerRepository = mock(CompetitionOrganizerRepository::class.java)
     private val eventPublisher = mock(ApplicationEventPublisher::class.java)
-    private val competitionService = CompetitionService(competitionRepository, competitionOrganizerRepository, eventPublisher)
+    private val competitionService = CompetitionService(
+        competitionRepository,
+        competitionOrganizerRepository,
+        eventPublisher,
+        Clock.systemUTC()
+    )
 
     @Test
     fun `createCompetition saves competition and registers organizer`() {
@@ -50,7 +56,7 @@ class CompetitionServiceTest {
             endAt = command.endAt,
             registrationStartAt = command.registrationStartAt,
             registrationEndAt = command.registrationEndAt,
-            status = CompetitionStatus.DRAFT,
+            visibility = CompetitionVisibility.PRIVATE,
             bankInfo = BankInfo(command.bankName, command.accountNumber, command.accountHolder, command.entryFee)
         )
 
@@ -72,7 +78,7 @@ class CompetitionServiceTest {
             name = "Updated",
             description = null, bannerImageUrl = null, startAt = null, endAt = null,
             registrationStartAt = null, registrationEndAt = null,
-            status = null, bankName = null, accountNumber = null, accountHolder = null, entryFee = null
+            visibility = null, bankName = null, accountNumber = null, accountHolder = null, entryFee = null
         )
         val existingCompetition = Competition(
             id = competitionId,
@@ -82,7 +88,7 @@ class CompetitionServiceTest {
             endAt = Instant.now().plusSeconds(7200),
             registrationStartAt = Instant.now(),
             registrationEndAt = Instant.now().plusSeconds(1800),
-            status = CompetitionStatus.DRAFT,
+            visibility = CompetitionVisibility.PRIVATE,
             bankInfo = BankInfo("Bank", "123", "Owner", 10000)
         )
 

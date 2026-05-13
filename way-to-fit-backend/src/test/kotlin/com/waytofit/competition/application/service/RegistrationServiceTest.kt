@@ -1,18 +1,14 @@
 package com.waytofit.competition.application.service
 
 import com.waytofit.competition.application.port.`in`.RegisterIndividualCommand
-import com.waytofit.competition.application.port.`in`.RegisterTeamCommand
-import com.waytofit.competition.application.port.`in`.SetLineupCommand
 import com.waytofit.competition.application.port.`in`.UpdatePaymentStatusCommand
 import com.waytofit.competition.application.port.out.*
 import com.waytofit.competition.domain.BankInfo
 import com.waytofit.competition.domain.Competition
 import com.waytofit.competition.domain.CompetitionRegistration
-import com.waytofit.competition.domain.CompetitionTeamMember
-import com.waytofit.competition.domain.enums.CompetitionStatus
+import com.waytofit.competition.domain.enums.CompetitionVisibility
 import com.waytofit.competition.domain.enums.PaymentStatus
 import com.waytofit.competition.domain.enums.RegistrationType
-import com.waytofit.competition.domain.enums.TeamRole
 import com.waytofit.global.error.BusinessException
 import com.waytofit.user.domain.enums.Gender
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -45,7 +41,7 @@ class RegistrationServiceTest {
             id = competitionId, name = "Test", description = "Desc",
             startAt = now.plusSeconds(3600), endAt = now.plusSeconds(7200),
             registrationStartAt = now.minusSeconds(3600), registrationEndAt = now.plusSeconds(3600),
-            status = CompetitionStatus.PUBLISHED, bankInfo = BankInfo.empty()
+            visibility = CompetitionVisibility.PUBLIC, bankInfo = BankInfo.empty()
         )
 
         `when`(competitionRepository.findById(competitionId)).thenReturn(competition)

@@ -11,10 +11,10 @@ import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { DatePicker } from '@/components/ui/date-picker';
 import { competitionApi } from '@/features/competition/api';
 import {
-  competitionStatusOptions,
-  normalizeCompetitionStatus,
+  competitionVisibilityOptions,
+  normalizeCompetitionVisibility,
 } from '@/features/competition/labels';
-import type { CompetitionStatus } from '@/features/competition/types';
+import type { CompetitionVisibility } from '@/features/competition/types';
 
 export function CompetitionEditPage() {
   const { competitionId } = useParams<{ competitionId: string }>();
@@ -39,7 +39,7 @@ export function CompetitionEditPage() {
     accountHolder: '',
     entryFee: 0,
     bannerImageUrl: '',
-    status: 'DRAFT' as CompetitionStatus,
+    visibility: 'PRIVATE' as CompetitionVisibility,
   });
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function CompetitionEditPage() {
         accountHolder: competition.accountHolder || '',
         entryFee: competition.entryFee || 0,
         bannerImageUrl: competition.bannerImageUrl || '',
-        status: normalizeCompetitionStatus(competition.status),
+        visibility: normalizeCompetitionVisibility(competition.visibility),
       });
     }
   }, [competition]);
@@ -137,16 +137,16 @@ export function CompetitionEditPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>대회 상태</Label>
+              <Label>공개 상태</Label>
               <Select
-                value={formData.status}
-                onValueChange={(val) => setFormData((p) => ({ ...p, status: val as CompetitionStatus }))}
+                value={formData.visibility}
+                onValueChange={(val) => setFormData((p) => ({ ...p, visibility: val as CompetitionVisibility }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="상태 선택" />
+                  <SelectValue placeholder="공개 상태 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {competitionStatusOptions.map((option) => (
+                  {competitionVisibilityOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>

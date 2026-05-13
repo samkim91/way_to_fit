@@ -1,12 +1,13 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type CompetitionStatus =
-  | 'DRAFT'
+export type CompetitionLifecycle =
   | 'PUBLISHED'
   | 'REGISTRATION_OPEN'
   | 'REGISTRATION_CLOSED'
   | 'IN_PROGRESS'
   | 'COMPLETED';
+
+export type CompetitionVisibility = 'PUBLIC' | 'PRIVATE';
 
 export type StageType = 'QUALIFIER' | 'FINAL' | 'OTHER';
 export type StageFormat = 'ONLINE' | 'OFFLINE' | 'HYBRID';
@@ -32,7 +33,8 @@ export interface Competition {
   endAt: string;
   registrationStartAt: string;
   registrationEndAt: string;
-  status: CompetitionStatus;
+  visibility: CompetitionVisibility;
+  lifecycle: CompetitionLifecycle;
   bankName: string;
   accountNumber: string;
   accountHolder: string;
@@ -62,7 +64,7 @@ export interface UpdateCompetitionRequest {
   endAt?: string;
   registrationStartAt?: string;
   registrationEndAt?: string;
-  status?: CompetitionStatus;
+  visibility?: CompetitionVisibility;
   bankName?: string;
   accountNumber?: string;
   accountHolder?: string;
