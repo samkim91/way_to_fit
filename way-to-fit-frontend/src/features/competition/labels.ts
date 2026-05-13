@@ -68,13 +68,11 @@ export const scoreStatusLabels: Record<ScoreStatus, string> = {
 export const stageTypeLabels: Record<StageType, string> = {
   QUALIFIER: '예선',
   FINAL: '본선',
-  OTHER: '기타',
 };
 
 export const stageFormatLabels: Record<StageFormat, string> = {
   ONLINE: '온라인',
   OFFLINE: '오프라인',
-  HYBRID: '온/오프라인',
 };
 
 export const eventTypeLabels: Record<EventType, string> = {

@@ -9,8 +9,8 @@ export type CompetitionLifecycle =
 
 export type CompetitionVisibility = 'PUBLIC' | 'PRIVATE';
 
-export type StageType = 'QUALIFIER' | 'FINAL' | 'OTHER';
-export type StageFormat = 'ONLINE' | 'OFFLINE' | 'HYBRID';
+export type StageType = 'QUALIFIER' | 'FINAL';
+export type StageFormat = 'ONLINE' | 'OFFLINE';
 
 export type EventType = 'INDIVIDUAL' | 'TEAM';
 export type GenderCategory = 'MEN' | 'WOMEN' | 'MIXED';

@@ -2,12 +2,10 @@ package com.waytofit.competition.domain.enums
 
 enum class StageType {
     QUALIFIER,
-    FINAL,
-    OTHER
+    FINAL
 }
 
 enum class StageFormat {
     ONLINE,
-    OFFLINE,
-    HYBRID
+    OFFLINE
 }
