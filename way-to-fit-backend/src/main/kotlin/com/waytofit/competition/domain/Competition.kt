@@ -38,7 +38,7 @@ data class Competition(
         !now.isBefore(startAt) -> CompetitionLifecycle.IN_PROGRESS
         !now.isBefore(registrationStartAt) && !now.isAfter(registrationEndAt) -> CompetitionLifecycle.REGISTRATION_OPEN
         now.isAfter(registrationEndAt) -> CompetitionLifecycle.REGISTRATION_CLOSED
-        else -> CompetitionLifecycle.PUBLISHED
+        else -> CompetitionLifecycle.OPEN
     }
 
     fun isPubliclyVisible(): Boolean = visibility == CompetitionVisibility.PUBLIC

@@ -69,7 +69,7 @@ class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
                       for (final status in [
                         CompetitionStatus.registrationOpen,
                         CompetitionStatus.inProgress,
-                        CompetitionStatus.published,
+                        CompetitionStatus.open,
                         CompetitionStatus.completed,
                       ])
                         FilterChip(

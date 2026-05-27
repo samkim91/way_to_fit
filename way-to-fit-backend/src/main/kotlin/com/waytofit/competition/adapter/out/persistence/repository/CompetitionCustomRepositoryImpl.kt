@@ -58,7 +58,7 @@ class CompetitionCustomRepositoryImpl(
         lifecycles.distinct().forEach { lifecycle ->
             builder.or(
                 when (lifecycle) {
-                    CompetitionLifecycle.PUBLISHED ->
+                    CompetitionLifecycle.OPEN ->
                         competitionEntity.registrationStartAt.gt(now)
                     CompetitionLifecycle.REGISTRATION_OPEN ->
                         competitionEntity.registrationStartAt.loe(now)

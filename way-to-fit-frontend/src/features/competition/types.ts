@@ -1,7 +1,7 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type CompetitionLifecycle =
-  | 'PUBLISHED'
+  | 'OPEN'
   | 'REGISTRATION_OPEN'
   | 'REGISTRATION_CLOSED'
   | 'IN_PROGRESS'

@@ -6,8 +6,8 @@ const STATUS_CONFIG: Record<
   CompetitionLifecycle,
   { label: string; className: string }
 > = {
-  PUBLISHED: {
-    label: competitionLifecycleLabels.PUBLISHED,
+  OPEN: {
+    label: competitionLifecycleLabels.OPEN,
     className: 'bg-slate-100 text-slate-600 border-slate-200',
   },
   REGISTRATION_OPEN: {
@@ -34,7 +34,7 @@ interface Props {
 }
 
 export function CompetitionStatusBadge({ status, className }: Props) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.PUBLISHED;
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.OPEN;
   return (
     <Badge
       variant="outline"

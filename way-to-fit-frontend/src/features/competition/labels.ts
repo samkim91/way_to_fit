@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 const COMPETITION_LIFECYCLE_VALUES = [
-  'PUBLISHED',
+  'OPEN',
   'REGISTRATION_OPEN',
   'REGISTRATION_CLOSED',
   'IN_PROGRESS',
@@ -21,7 +21,7 @@ const COMPETITION_LIFECYCLE_VALUES = [
 const COMPETITION_VISIBILITY_VALUES = ['PUBLIC', 'PRIVATE'] as const satisfies readonly CompetitionVisibility[];
 
 export const competitionLifecycleLabels: Record<CompetitionLifecycle, string> = {
-  PUBLISHED: '공개됨',
+  OPEN: '오픈',
   REGISTRATION_OPEN: '신청중',
   REGISTRATION_CLOSED: '신청 마감',
   IN_PROGRESS: '진행중',

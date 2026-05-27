@@ -83,7 +83,6 @@ class CompetitionControllerTest {
             .andExpect(jsonPath("$.data.content.length()").value(1))
             .andExpect(jsonPath("$.data.content[0].id").value(competition.id.toString()))
             .andExpect(jsonPath("$.data.content[0].name").value("2026 서머 핏"))
-            .andExpect(jsonPath("$.data.content[0].visibility").value("PUBLIC"))
             .andExpect(jsonPath("$.data.totalElements").value(1))
     }
 

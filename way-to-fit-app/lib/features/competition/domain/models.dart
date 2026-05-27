@@ -1,6 +1,5 @@
 enum CompetitionStatus {
-  draft,
-  published,
+  open,
   registrationOpen,
   registrationClosed,
   inProgress,
@@ -8,19 +7,17 @@ enum CompetitionStatus {
 
   factory CompetitionStatus.fromJson(String value) {
     return switch (value) {
-      'DRAFT' => draft,
-      'PUBLISHED' => published,
+      'OPEN' => open,
       'REGISTRATION_OPEN' => registrationOpen,
       'REGISTRATION_CLOSED' => registrationClosed,
       'IN_PROGRESS' => inProgress,
       'COMPLETED' => completed,
-      _ => published,
+      _ => open,
     };
   }
 
   String get label => switch (this) {
-    draft => '초안',
-    published => '공개',
+    open => '오픈',
     registrationOpen => '신청중',
     registrationClosed => '마감',
     inProgress => '진행중',
@@ -267,13 +264,11 @@ class OverallLeaderboardEntry {
 class AthleteProfile {
   AthleteProfile({
     required this.userId,
-    required this.boxId,
     required this.biography,
     required this.profileImageUrl,
   });
 
   final String userId;
-  final String? boxId;
   final String? biography;
   final String? profileImageUrl;
 }
@@ -344,14 +339,12 @@ class AthleteSearchResult {
     required this.name,
     required this.gender,
     required this.profileImageUrl,
-    required this.boxName,
   });
 
   final String userId;
   final String name;
   final String? gender;
   final String? profileImageUrl;
-  final String? boxName;
 }
 
 class AthleteProfileBundle {

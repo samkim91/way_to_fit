@@ -14,7 +14,7 @@ class CompetitionResponseDto {
     required this.endAt,
     required this.registrationStartAt,
     required this.registrationEndAt,
-    required this.status,
+    required this.lifecycle,
     required this.bankName,
     required this.accountNumber,
     required this.accountHolder,
@@ -30,7 +30,7 @@ class CompetitionResponseDto {
   final DateTime endAt;
   final DateTime registrationStartAt;
   final DateTime registrationEndAt;
-  final String status;
+  final String lifecycle;
   final String bankName;
   final String accountNumber;
   final String accountHolder;
@@ -51,7 +51,7 @@ class CompetitionResponseDto {
     endAt: endAt.toLocal(),
     registrationStartAt: registrationStartAt.toLocal(),
     registrationEndAt: registrationEndAt.toLocal(),
-    status: CompetitionStatus.fromJson(status),
+    status: CompetitionStatus.fromJson(lifecycle),
     bankName: bankName,
     accountNumber: accountNumber,
     accountHolder: accountHolder,
