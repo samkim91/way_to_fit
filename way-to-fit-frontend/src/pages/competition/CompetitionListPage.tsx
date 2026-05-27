@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Plus, Calendar, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { competitionApi } from '@/features/competition/api';
 import { CompetitionStatusBadge } from '@/features/competition/components/CompetitionStatusBadge';
@@ -133,8 +134,7 @@ export function CompetitionListPage() {
                     <div className="flex items-center">
                       <Calendar className="mr-2 h-4 w-4" />
                       <span>
-                        {new Date(competition.startAt).toLocaleDateString()} -{' '}
-                        {new Date(competition.endAt).toLocaleDateString()}
+                        {formatDate(competition.startAt)} - {formatDate(competition.endAt)}
                       </span>
                     </div>
                     <div className="flex items-center">

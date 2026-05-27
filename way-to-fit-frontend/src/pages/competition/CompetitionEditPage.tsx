@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateTimeRangePicker } from '@/components/ui/date-time-range-picker';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { competitionApi } from '@/features/competition/api';
+import { dayjs } from '@/utils';
 import {
   competitionVisibilityOptions,
   normalizeCompetitionVisibility,
@@ -47,10 +48,10 @@ export function CompetitionEditPage() {
       setFormData({
         name: competition.name,
         description: competition.description || '',
-        startAt: competition.startAt.split('T')[0],
-        endAt: competition.endAt.split('T')[0],
-        registrationStartAt: competition.registrationStartAt.slice(0, 16),
-        registrationEndAt: competition.registrationEndAt.slice(0, 16),
+        startAt: dayjs(competition.startAt).format('YYYY-MM-DD'),
+        endAt: dayjs(competition.endAt).format('YYYY-MM-DD'),
+        registrationStartAt: dayjs(competition.registrationStartAt).format('YYYY-MM-DDTHH:mm'),
+        registrationEndAt: dayjs(competition.registrationEndAt).format('YYYY-MM-DDTHH:mm'),
         bankName: competition.bankName || '',
         accountNumber: competition.accountNumber || '',
         accountHolder: competition.accountHolder || '',

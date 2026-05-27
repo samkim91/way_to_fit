@@ -50,7 +50,7 @@ export function LeaderboardTab() {
   const leaderboard = wsData || initialLeaderboard;
 
   const allScaleCategories = useMemo(
-    () => Array.from(new Set((leaderboard?.entries ?? []).map((e: any) => e.scaleCategory as string))).sort(),
+    () => Array.from(new Set((leaderboard?.entries ?? []).map((e: any) => e.scaleCategory as string))).sort() as string[],
     [leaderboard],
   );
 

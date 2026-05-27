@@ -16,6 +16,7 @@ spring:
       hibernate:
         format_sql: true
   jackson:
+    time-zone: UTC
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
     deserialization:

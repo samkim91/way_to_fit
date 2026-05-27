@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import { stageApi, eventApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/utils';
 import { Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -75,15 +76,11 @@ export function ConfigTab() {
                   <span>타입: {stageTypeLabels[stage.stageType]}</span>
                   <span>포맷: {stageFormatLabels[stage.stageFormat]}</span>
                   <span>
-                    기간: {new Date(stage.startAt).toLocaleDateString()} ~{' '}
-                    {new Date(stage.endAt).toLocaleDateString()}
+                    기간: {formatDate(stage.startAt)} ~ {formatDate(stage.endAt)}
                   </span>
                 </div>
 
                 <div className="mt-4 border-t pt-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-semibold">이벤트 목록</h3>
-                  </div>
                   <EventList competitionId={competitionId} stageId={stage.id} />
                 </div>
               </CardContent>
@@ -140,7 +137,8 @@ function EventList({ competitionId, stageId }: { competitionId: string; stageId:
 
   return (
     <>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-semibold">이벤트 목록</h3>
         <Button variant="outline" size="sm" onClick={openCreateEvent}>
           <Plus className="mr-2 h-4 w-4" /> 이벤트 추가
         </Button>
