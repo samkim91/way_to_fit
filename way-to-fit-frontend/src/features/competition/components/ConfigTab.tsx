@@ -149,7 +149,11 @@ function EventList({ competitionId, stageId }: { competitionId: string; stageId:
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {events.map((event) => (
-            <Card key={event.id} className="bg-slate-50 dark:bg-slate-900">
+            <Card
+              key={event.id}
+              className="cursor-pointer bg-slate-50 transition-colors hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
+              onClick={() => openEditEvent(event)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -168,16 +172,8 @@ function EventList({ competitionId, stageId }: { competitionId: string; stageId:
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => openEditEvent(event)}
-                    >
-                      편집
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
                       className="h-6 px-2 text-xs text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(event)}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(event); }}
                       disabled={deleteMutation.isPending}
                     >
                       삭제
