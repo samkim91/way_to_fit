@@ -16,7 +16,6 @@ interface CreateAthleteProfileUseCase {
 }
 
 data class UpdateAthleteProfileCommand(
-    val boxId: UUID?,
     val biography: String?,
     val profileImageUrl: String?,
 )

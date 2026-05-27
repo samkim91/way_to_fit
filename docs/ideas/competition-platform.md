@@ -63,7 +63,6 @@ Competition
 │
 └── AthleteProfile (선수 프로필)
     ├── User 기반, OAuth 로그인 시 자동 생성
-    ├── 소속 박스 (boxId nullable FK — Box 엔티티 참조, 선택)
     ├── biography, profileImageUrl 등 마이페이지에서 수정
     ├── 대회 참가 이력: List<{competitionId, division, finalRank}>
     └── 이벤트별 성적 조회
@@ -78,14 +77,14 @@ Competition
 | `GenderCategory` | `wod/domain/enums` | 이벤트 성별 구분 |
 | `ResultStatus` (COMPLETED/DNF) | `wod/domain/enums` | 기록 완주 상태 |
 | `WeightUnit` (KG/LB) | `wod/domain/enums` | 무게 단위 |
-| `ScaleGroup` 개념 | `wod/domain` | ScaleCategory로 재정의 (boxId 의존성 제거) |
+| `ScaleGroup` 개념 | `wod/domain` | ScaleCategory로 재정의 |
 
 ### 핵심 설계 결정
 
 - 한 선수가 같은 대회에 **개인 등록 1개 + 팀 등록 1개** 동시 가능 (이벤트별 eventType으로 자연 처리)
 - 한 선수는 **하나의 팀에만 소속** 가능 (동일 대회 내)
 - **팀 이벤트별 출전 멤버 구성 가능** — EventLineup으로 관리 (팀 전원 참가 강제 아님)
-- **박스는 nullable FK (boxId)** — AthleteProfile에서 선택적 참조. Competition 도메인 자체는 Box에 의존하지 않음
+- **선수 프로필은 biography/profileImageUrl 중심으로 유지** — 별도 소속 도메인 의존 없음
 - **Organizer 권한**: `CompetitionOrganizer` 별도 테이블 (`competitionId + userId`) — 대회별 권한 관리, 향후 공동 주최 확장 가능
 - **프로젝션 페이지는 주최자 어드민 내 탭** → WebSocket 세션이 주최자 인원 수로 제한되어 부하 예측 가능
 - **Competition Score는 기존 WodRecord와 완전 분리** — 영상 검증·조정 이력·이벤트 연계 구조가 달라 확장이 아닌 별도 도메인

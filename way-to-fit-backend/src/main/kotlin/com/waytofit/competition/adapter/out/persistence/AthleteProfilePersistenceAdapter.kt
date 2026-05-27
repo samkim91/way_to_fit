@@ -42,8 +42,7 @@ class AthleteProfilePersistenceAdapter(
                 userId = user.id!!,
                 name = user.name,
                 gender = user.gender,
-                profileImageUrl = profile.profileImageUrl,
-                boxId = profile.boxId
+                profileImageUrl = profile.profileImageUrl
             )
         }
     }

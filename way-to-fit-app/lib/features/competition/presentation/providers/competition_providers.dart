@@ -89,3 +89,18 @@ final athleteProfileProvider = FutureProvider.autoDispose
       final history = await repository.getAthleteHistory(userId);
       return AthleteProfileBundle(profile: profile, history: history);
     });
+
+final myProfileProvider = FutureProvider.autoDispose<AthleteProfileBundle>((
+  ref,
+) async {
+  final authState = ref.watch(authControllerProvider).valueOrNull;
+  final userId = authState?.userId;
+  if (userId == null || userId.isEmpty) {
+    throw StateError('로그인이 필요합니다.');
+  }
+
+  final repository = ref.watch(competitionRepositoryProvider);
+  final profile = await repository.getAthleteProfile(userId);
+  final history = await repository.getAthleteHistory(userId);
+  return AthleteProfileBundle(profile: profile, history: history);
+});

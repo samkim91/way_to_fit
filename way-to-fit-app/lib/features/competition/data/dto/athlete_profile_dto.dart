@@ -11,16 +11,12 @@ class AthleteSearchResponseDto {
     required this.name,
     required this.gender,
     required this.profileImageUrl,
-    required this.boxId,
-    required this.boxName,
   });
 
   final String userId;
   final String name;
   final String? gender;
   final String? profileImageUrl;
-  final String? boxId;
-  final String? boxName;
 
   factory AthleteSearchResponseDto.fromJson(Map<String, dynamic> json) =>
       _$AthleteSearchResponseDtoFromJson(json);
@@ -32,7 +28,6 @@ class AthleteSearchResponseDto {
     name: name,
     gender: gender,
     profileImageUrl: profileImageUrl,
-    boxName: boxName,
   );
 }
 
@@ -41,14 +36,12 @@ class AthleteProfileResponseDto {
   const AthleteProfileResponseDto({
     required this.id,
     required this.userId,
-    required this.boxId,
     required this.biography,
     required this.profileImageUrl,
   });
 
   final String? id;
   final String userId;
-  final String? boxId;
   final String? biography;
   final String? profileImageUrl;
 
@@ -59,10 +52,25 @@ class AthleteProfileResponseDto {
 
   AthleteProfile toDomain() => AthleteProfile(
     userId: userId,
-    boxId: boxId,
     biography: biography,
     profileImageUrl: profileImageUrl,
   );
+}
+
+@JsonSerializable()
+class UpdateAthleteProfileRequestDto {
+  const UpdateAthleteProfileRequestDto({
+    required this.biography,
+    required this.profileImageUrl,
+  });
+
+  final String? biography;
+  final String? profileImageUrl;
+
+  factory UpdateAthleteProfileRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$UpdateAthleteProfileRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateAthleteProfileRequestDtoToJson(this);
 }
 
 @JsonSerializable()

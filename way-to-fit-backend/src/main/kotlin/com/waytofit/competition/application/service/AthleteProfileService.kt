@@ -38,7 +38,6 @@ class AthleteProfileService(
             ?: throw BusinessException(ResponseCode.NOT_FOUND, "선수 프로필을 찾을 수 없습니다.")
 
         val updatedProfile = profile.copy(
-            boxId = command.boxId,
             biography = command.biography,
             profileImageUrl = command.profileImageUrl
         )

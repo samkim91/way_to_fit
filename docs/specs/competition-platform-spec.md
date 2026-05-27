@@ -304,14 +304,13 @@ data class CompetitionScore(
 data class AthleteProfile(
     val id: UUID? = null,
     val userId: UUID,
-    val boxId: UUID? = null,          // nullable FK → Box
     val biography: String? = null,
     val profileImageUrl: String? = null,
     val audit: AuditInfo = AuditInfo.empty(),
 )
 ```
 
-OAuth 로그인 시 자동 생성 (기본값만). 마이페이지에서 boxId, biography 등 수정.
+OAuth 로그인 시 자동 생성 (기본값만). 마이페이지에서 biography, profileImageUrl 등을 수정.
 
 ### CompetitionHistorySnapshot (선수 이력 스냅샷)
 
@@ -452,7 +451,7 @@ data class CompetitionHistorySnapshot(
 - Organizer 권한 부여 로직 변경 (현재 DB 직접 제어)
 
 **Never:**
-- 기존 `WodRecord`, `Wod`, `Box` 도메인 직접 수정
+- 기존 `WodRecord`, `Wod` 도메인 직접 수정
 - CompetitionScore와 WodRecord 혼용
 - 인증 없는 WebSocket 구독 허용
 

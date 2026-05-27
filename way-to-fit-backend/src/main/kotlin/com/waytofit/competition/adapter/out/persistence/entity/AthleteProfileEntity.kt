@@ -22,9 +22,6 @@ class AthleteProfileEntity(
     @Column(name = "user_id", nullable = false, unique = true)
     val userId: UUID,
 
-    @Column(name = "box_id")
-    val boxId: UUID? = null,
-
     @Column(name = "biography", length = 1000)
     val biography: String? = null,
 
@@ -35,7 +32,6 @@ class AthleteProfileEntity(
     fun toDomain(): AthleteProfile = AthleteProfile(
         id = id,
         userId = userId,
-        boxId = boxId,
         biography = biography,
         profileImageUrl = profileImageUrl
     )
@@ -44,7 +40,6 @@ class AthleteProfileEntity(
         fun fromDomain(domain: AthleteProfile): AthleteProfileEntity = AthleteProfileEntity(
             id = domain.id,
             userId = domain.userId,
-            boxId = domain.boxId,
             biography = domain.biography,
             profileImageUrl = domain.profileImageUrl
         )

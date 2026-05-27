@@ -8,6 +8,4 @@ data class AthleteSearchResult(
     val name: String,
     val gender: Gender?,
     val profileImageUrl: String?,
-    val boxId: UUID?,
-    val boxName: String? = null,
 )

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,9 +12,10 @@ final flutterSecureStorageProvider = Provider<FlutterSecureStorage>(
 );
 
 class AuthState {
-  const AuthState({this.accessToken});
+  const AuthState({this.accessToken, this.userId});
 
   final String? accessToken;
+  final String? userId;
 
   bool get isAuthenticated => accessToken != null && accessToken!.isNotEmpty;
 }
@@ -24,18 +27,21 @@ class AuthController extends AsyncNotifier<AuthState> {
   Future<AuthState> build() async {
     final storage = ref.read(flutterSecureStorageProvider);
     final token = await storage.read(key: _accessTokenKey);
-    return AuthState(accessToken: token);
+    return AuthState(accessToken: token, userId: _decodeUserId(token));
   }
 
   Future<void> saveAccessToken(String token) async {
     final storage = ref.read(flutterSecureStorageProvider);
     await storage.write(key: _accessTokenKey, value: token);
-    state = AsyncData(AuthState(accessToken: token));
+    state = AsyncData(
+      AuthState(accessToken: token, userId: _decodeUserId(token)),
+    );
   }
 
   Future<void> loginWithGoogle(Dio dio, String baseUrl) async {
     final redirectUri = Uri.encodeComponent('waytofit://auth/callback');
-    final authUrl = '$baseUrl/oauth2/authorization/google?redirect_uri=$redirectUri';
+    final authUrl =
+        '$baseUrl/oauth2/authorization/google?redirect_uri=$redirectUri';
 
     final callbackUrl = await FlutterWebAuth2.authenticate(
       url: authUrl,
@@ -71,6 +77,21 @@ class AuthController extends AsyncNotifier<AuthState> {
     final storage = ref.read(flutterSecureStorageProvider);
     await storage.delete(key: _accessTokenKey);
     state = const AsyncData(AuthState());
+  }
+
+  String? _decodeUserId(String? token) {
+    if (token == null || token.isEmpty) return null;
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    try {
+      final payload = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final claims = jsonDecode(payload) as Map<String, dynamic>;
+      return claims['sub'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 }
 

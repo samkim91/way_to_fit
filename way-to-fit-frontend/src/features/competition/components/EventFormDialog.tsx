@@ -63,7 +63,7 @@ const defaultForm: FormState = {
   eventType: 'INDIVIDUAL',
   wodType: 'FOR_TIME',
   order: '1',
-  gender: 'MIXED',
+  gender: 'MEN',
   scaleCategories: '',
   submissionDeadline: '',
   releaseAt: '',
@@ -87,6 +87,14 @@ function parseScaleCategories(raw: string): string[] {
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+function getGenderOptions(eventType: EventType): GenderCategory[] {
+  return eventType === 'INDIVIDUAL' ? ['MEN', 'WOMEN'] : ['MEN', 'WOMEN', 'MIXED'];
+}
+
+function normalizeGenderForEventType(eventType: EventType, gender: GenderCategory): GenderCategory {
+  return getGenderOptions(eventType).includes(gender) ? gender : 'MEN';
+}
+
 export function EventFormDialog({ open, onOpenChange, competitionId, stageId, event }: EventFormDialogProps) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<FormState>(defaultForm);
@@ -102,7 +110,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
           eventType: event.eventType,
           wodType: event.wodType,
           order: String(event.order),
-          gender: event.gender,
+          gender: normalizeGenderForEventType(event.eventType, event.gender),
           scaleCategories: event.scaleCategories.join(', '),
           submissionDeadline: event.submissionDeadline,
           releaseAt: event.releaseAt ?? '',
@@ -161,6 +169,15 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
   const set = (field: keyof FormState) => (value: string) =>
     setFormData((p) => ({ ...p, [field]: value }));
 
+  const setEventType = (value: string) =>
+    setFormData((p) => ({
+      ...p,
+      eventType: value as EventType,
+      gender: normalizeGenderForEventType(value as EventType, p.gender),
+    }));
+
+  const genderOptions = getGenderOptions(formData.eventType);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -182,7 +199,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Event 타입 *</Label>
-              <Select value={formData.eventType} onValueChange={set('eventType')}>
+              <Select value={formData.eventType} onValueChange={setEventType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(eventTypeLabels) as EventType[]).map((k) => (
@@ -197,7 +214,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
               <Select value={formData.gender} onValueChange={set('gender')}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(genderCategoryLabels) as GenderCategory[]).map((k) => (
+                  {genderOptions.map((k) => (
                     <SelectItem key={k} value={k}>{genderCategoryLabels[k]}</SelectItem>
                   ))}
                 </SelectContent>
@@ -296,9 +313,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
               min="1"
               value={formData.order}
               onChange={(e) => set('order')(e.target.value)}
-              disabled={!!event}
             />
-            {event && <p className="text-xs text-muted-foreground">기록이 있는 이벤트의 순서는 변경할 수 없습니다.</p>}
             {errors.order && <p className="text-xs text-destructive">{errors.order}</p>}
           </div>
 

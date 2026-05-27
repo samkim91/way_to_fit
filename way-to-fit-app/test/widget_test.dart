@@ -26,7 +26,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('대회'), findsOneWidget);
+    expect(find.text('대회'), findsWidgets);
+    expect(find.text('내 프로필'), findsOneWidget);
   });
 }
 
@@ -54,6 +55,14 @@ class _FakeCompetitionRepository extends CompetitionRepository {
 
   @override
   Future<AthleteProfile> getAthleteProfile(String userId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AthleteProfile> updateAthleteProfile({
+    String? biography,
+    String? profileImageUrl,
+  }) {
     throw UnimplementedError();
   }
 
@@ -148,6 +157,25 @@ class _FakeCompetitionRepository extends CompetitionRepository {
     num? resultWeight,
     String? resultCustom,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<EventLineup> setEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+    List<String> memberIds,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<EventLineup?> getEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  ) {
     throw UnimplementedError();
   }
 }

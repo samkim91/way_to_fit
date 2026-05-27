@@ -88,11 +88,18 @@ abstract class CompetitionApiService {
     @Path('userId') String userId,
   );
 
+  @PATCH('/api/athletes/me')
+  Future<ApiResponseDto<AthleteProfileResponseDto>> updateAthleteProfile(
+    @Body() UpdateAthleteProfileRequestDto body,
+  );
+
   @GET('/api/athletes/{userId}/competitions')
   Future<ApiResponseDto<AthleteCompetitionHistoryResponseDto>>
   getAthleteHistory(@Path('userId') String userId);
 
-  @PUT('/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}')
+  @PUT(
+    '/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}',
+  )
   Future<ApiResponseDto<EventLineupResponseDto>> setEventLineup(
     @Path('competitionId') String competitionId,
     @Path('eventId') String eventId,
@@ -100,7 +107,9 @@ abstract class CompetitionApiService {
     @Body() SetLineupRequestDto body,
   );
 
-  @GET('/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}')
+  @GET(
+    '/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}',
+  )
   Future<ApiResponseDto<EventLineupResponseDto>> getEventLineup(
     @Path('competitionId') String competitionId,
     @Path('eventId') String eventId,

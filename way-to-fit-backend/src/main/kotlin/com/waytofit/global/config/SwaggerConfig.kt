@@ -48,19 +48,11 @@ class SwaggerConfig {
     }
 
     @Bean
-    fun boxAdminApi(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
-            .group("2. Box-Admin")
-            .pathsToMatch("/api/v1/admin/**")
-            .build()
-    }
-
-    @Bean
     fun serviceApi(): GroupedOpenApi {
         return GroupedOpenApi.builder()
-            .group("3. Service")
+            .group("2. Service")
             .pathsToMatch("/api/**")
-            .pathsToExclude("/api/v1/super-admin/**", "/api/v1/admin/**")
+            .pathsToExclude("/api/v1/super-admin/**")
             .build()
     }
 }

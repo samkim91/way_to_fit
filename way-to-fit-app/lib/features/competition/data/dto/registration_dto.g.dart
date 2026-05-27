@@ -62,6 +62,39 @@ Map<String, dynamic> _$RegisterTeamRequestDtoToJson(
   'paymentNote': instance.paymentNote,
 };
 
+SetLineupRequestDto _$SetLineupRequestDtoFromJson(Map<String, dynamic> json) =>
+    SetLineupRequestDto(
+      participatingMemberIds: (json['participatingMemberIds'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+    );
+
+Map<String, dynamic> _$SetLineupRequestDtoToJson(
+  SetLineupRequestDto instance,
+) => <String, dynamic>{
+  'participatingMemberIds': instance.participatingMemberIds,
+};
+
+EventLineupResponseDto _$EventLineupResponseDtoFromJson(
+  Map<String, dynamic> json,
+) => EventLineupResponseDto(
+  id: json['id'] as String,
+  eventId: json['eventId'] as String,
+  registrationId: json['registrationId'] as String,
+  participatingMemberIds: (json['participatingMemberIds'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
+);
+
+Map<String, dynamic> _$EventLineupResponseDtoToJson(
+  EventLineupResponseDto instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'eventId': instance.eventId,
+  'registrationId': instance.registrationId,
+  'participatingMemberIds': instance.participatingMemberIds,
+};
+
 RegistrationResponseDto _$RegistrationResponseDtoFromJson(
   Map<String, dynamic> json,
 ) => RegistrationResponseDto(
@@ -96,37 +129,4 @@ Map<String, dynamic> _$RegistrationResponseDtoToJson(
   'paymentNote': instance.paymentNote,
   'members': instance.members,
   'createdAt': instance.createdAt?.toIso8601String(),
-};
-
-SetLineupRequestDto _$SetLineupRequestDtoFromJson(Map<String, dynamic> json) =>
-    SetLineupRequestDto(
-      participatingMemberIds: (json['participatingMemberIds'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-    );
-
-Map<String, dynamic> _$SetLineupRequestDtoToJson(
-  SetLineupRequestDto instance,
-) => <String, dynamic>{
-  'participatingMemberIds': instance.participatingMemberIds,
-};
-
-EventLineupResponseDto _$EventLineupResponseDtoFromJson(
-  Map<String, dynamic> json,
-) => EventLineupResponseDto(
-  id: json['id'] as String,
-  eventId: json['eventId'] as String,
-  registrationId: json['registrationId'] as String,
-  participatingMemberIds: (json['participatingMemberIds'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
-);
-
-Map<String, dynamic> _$EventLineupResponseDtoToJson(
-  EventLineupResponseDto instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'eventId': instance.eventId,
-  'registrationId': instance.registrationId,
-  'participatingMemberIds': instance.participatingMemberIds,
 };

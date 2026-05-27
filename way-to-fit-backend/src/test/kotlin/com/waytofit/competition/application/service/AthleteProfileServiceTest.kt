@@ -55,11 +55,10 @@ class AthleteProfileServiceTest {
     }
 
     @Test
-    fun `updateAthleteProfile updates biography and other fields`() {
+    fun `updateAthleteProfile updates biography and profile image`() {
         val userId = UUID.randomUUID()
-        val boxId = UUID.randomUUID()
         val existingProfile = AthleteProfile(id = UUID.randomUUID(), userId = userId)
-        val command = UpdateAthleteProfileCommand(boxId = boxId, biography = "CrossFit Lover", profileImageUrl = "http://image.url")
+        val command = UpdateAthleteProfileCommand(biography = "CrossFit Lover", profileImageUrl = "http://image.url")
 
         `when`(athleteProfileRepository.findByUserId(userId)).thenReturn(existingProfile)
         `when`(athleteProfileRepository.save(any(AthleteProfile::class.java))).thenAnswer { it.arguments[0] }
@@ -67,7 +66,6 @@ class AthleteProfileServiceTest {
         val result = athleteProfileService.updateAthleteProfile(userId, command)
 
         assertEquals("CrossFit Lover", result.biography)
-        assertEquals(boxId, result.boxId)
         assertEquals("http://image.url", result.profileImageUrl)
     }
 

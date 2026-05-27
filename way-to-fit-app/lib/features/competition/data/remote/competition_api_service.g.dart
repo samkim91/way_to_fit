@@ -477,6 +477,40 @@ class _CompetitionApiService implements CompetitionApiService {
   }
 
   @override
+  Future<ApiResponseDto<AthleteProfileResponseDto>> updateAthleteProfile(
+    UpdateAthleteProfileRequestDto body,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<ApiResponseDto<AthleteProfileResponseDto>>(
+      Options(method: 'PATCH', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/athletes/me',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ApiResponseDto<AthleteProfileResponseDto> _value;
+    try {
+      _value = ApiResponseDto<AthleteProfileResponseDto>.fromJson(
+        _result.data!,
+        (json) =>
+            AthleteProfileResponseDto.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<ApiResponseDto<AthleteCompetitionHistoryResponseDto>>
   getAthleteHistory(String userId) async {
     final _extra = <String, dynamic>{};
@@ -539,8 +573,7 @@ class _CompetitionApiService implements CompetitionApiService {
     try {
       _value = ApiResponseDto<EventLineupResponseDto>.fromJson(
         _result.data!,
-        (json) =>
-            EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
+        (json) => EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
@@ -574,8 +607,7 @@ class _CompetitionApiService implements CompetitionApiService {
     try {
       _value = ApiResponseDto<EventLineupResponseDto>.fromJson(
         _result.data!,
-        (json) =>
-            EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
+        (json) => EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);

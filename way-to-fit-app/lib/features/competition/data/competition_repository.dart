@@ -32,7 +32,10 @@ abstract class CompetitionRepository {
     String stageId,
   );
   Future<List<Registration>> getMyRegistrations(String competitionId);
-  Future<List<AthleteSearchResult>> searchAthletes(String competitionId, String name);
+  Future<List<AthleteSearchResult>> searchAthletes(
+    String competitionId,
+    String name,
+  );
   Future<Registration> registerTeam(
     String competitionId, {
     required String teamName,
@@ -72,6 +75,10 @@ abstract class CompetitionRepository {
     String? scaleCategory,
   });
   Future<AthleteProfile> getAthleteProfile(String userId);
+  Future<AthleteProfile> updateAthleteProfile({
+    String? biography,
+    String? profileImageUrl,
+  });
   Future<List<CompetitionHistoryItem>> getAthleteHistory(String userId);
   Future<EventLineup> setEventLineup(
     String competitionId,
@@ -256,6 +263,20 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   @override
   Future<AthleteProfile> getAthleteProfile(String userId) async {
     final response = await _service.getAthleteProfile(userId);
+    return _requireData<AthleteProfileResponseDto>(response).toDomain();
+  }
+
+  @override
+  Future<AthleteProfile> updateAthleteProfile({
+    String? biography,
+    String? profileImageUrl,
+  }) async {
+    final response = await _service.updateAthleteProfile(
+      UpdateAthleteProfileRequestDto(
+        biography: biography,
+        profileImageUrl: profileImageUrl,
+      ),
+    );
     return _requireData<AthleteProfileResponseDto>(response).toDomain();
   }
 

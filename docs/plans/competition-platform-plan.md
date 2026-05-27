@@ -431,12 +431,12 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 
 **Acceptance criteria:**
 - [ ] OAuth 로그인 성공 시 AthleteProfile 자동 생성 (이미 있으면 skip)
-- [ ] `PATCH /api/athletes/me` — boxId, biography, profileImageUrl 수정
+- [ ] `PATCH /api/athletes/me` — biography, profileImageUrl 수정
 - [ ] `GET /api/athletes/{userId}` — 공개 프로필 조회 (인증 없음)
 
 **Verification:** `./gradlew test --tests "*.AthleteProfileTest"`
 
-**Dependencies:** B-1-1 (boxId FK)
+**Dependencies:** OAuth 로그인
 
 **Files:**
 - `competition/domain/AthleteProfile.kt`
@@ -710,7 +710,7 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 ### Task F-7-7: 선수 프로필 화면 [S]
 
 **Acceptance criteria:**
-- [ ] 내 프로필 (boxId, biography, profileImageUrl 수정)
+- [ ] 내 프로필 (biography, profileImageUrl 수정)
 - [ ] 타인 프로필 조회 (대회 이력, 이벤트별 성적)
 - [ ] 리더보드 선수명 탭 → 해당 프로필 화면 이동
 

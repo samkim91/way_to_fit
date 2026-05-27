@@ -69,9 +69,7 @@ class CompetitionRegistrationController(
                 userId = result.userId,
                 name = result.name,
                 gender = result.gender,
-                profileImageUrl = result.profileImageUrl,
-                boxId = result.boxId,
-                boxName = result.boxName
+                profileImageUrl = result.profileImageUrl
             )
         })
     }

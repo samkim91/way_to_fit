@@ -48,7 +48,10 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
       setState(() => _searchResults = []);
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value.trim()));
+    _debounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _search(value.trim()),
+    );
   }
 
   Future<void> _search(String name) async {
@@ -60,7 +63,9 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
       if (!mounted) return;
       final alreadyAdded = _members.map((m) => m.athlete.userId).toSet();
       setState(() {
-        _searchResults = results.where((r) => !alreadyAdded.contains(r.userId)).toList();
+        _searchResults = results
+            .where((r) => !alreadyAdded.contains(r.userId))
+            .toList();
       });
     } catch (_) {
       if (mounted) setState(() => _searchResults = []);
@@ -85,15 +90,15 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
   Future<void> _submit() async {
     final teamName = _teamNameController.text.trim();
     if (teamName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('팀명을 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('팀명을 입력해주세요.')));
       return;
     }
     if (_members.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('팀원을 한 명 이상 추가해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('팀원을 한 명 이상 추가해주세요.')));
       return;
     }
 
@@ -131,11 +136,13 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
       // 팀 신청 완료 후 이벤트 라인업 설정 화면으로 이동
       if (context.mounted) {
         final membersWithNames = _members
-            .map((m) => TeamMember(
-                  userId: m.athlete.userId,
-                  gender: m.gender,
-                  name: m.athlete.name,
-                ))
+            .map(
+              (m) => TeamMember(
+                userId: m.athlete.userId,
+                gender: m.gender,
+                name: m.athlete.name,
+              ),
+            )
             .toList();
         context.push(
           '/competitions/${widget.competitionId}/lineup?registrationId=${registrationResult.id}',
@@ -143,9 +150,9 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
         );
       }
     } else if (submitError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(submitError.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(submitError.toString())));
     }
   }
 
@@ -174,9 +181,9 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
             const SizedBox(height: 24),
             Text(
               '팀원 추가',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -205,12 +212,12 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
                     for (final athlete in _searchResults)
                       _SearchResultTile(
                         athlete: athlete,
-                        selectedGender: _pendingGender[athlete.userId] ??
+                        selectedGender:
+                            _pendingGender[athlete.userId] ??
                             athlete.gender ??
                             'MALE',
-                        onGenderChanged: (g) => setState(
-                          () => _pendingGender[athlete.userId] = g,
-                        ),
+                        onGenderChanged: (g) =>
+                            setState(() => _pendingGender[athlete.userId] = g),
                         onAdd: () => _addMember(athlete),
                       ),
                   ],
@@ -221,9 +228,9 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
               const SizedBox(height: 16),
               Text(
                 '추가된 팀원 (${_members.length}명)',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -284,13 +291,6 @@ class _SearchResultTile extends StatelessWidget {
                   athlete.name,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                if (athlete.boxName != null)
-                  Text(
-                    athlete.boxName!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white54,
-                    ),
-                  ),
               ],
             ),
           ),

@@ -28,14 +28,9 @@ enum class ResponseCode(
     AUTH_CODE_EXPIRED(HttpStatus.UNAUTHORIZED, "1008", "만료된 인증 코드입니다."),
     USER_ID_MUST_NOT_BE_NULL(HttpStatus.BAD_REQUEST, "1009", "사용자 ID가 null일 수 없습니다."),
 
-    // Box & Membership (3000 ~ 3999)
-    BOX_NOT_FOUND(HttpStatus.NOT_FOUND, "3000", "존재하지 않는 박스입니다."),
-    BOX_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "3001", "박스에 가입된 회원이 아닙니다."),
-    ALREADY_JOINED_BOX(HttpStatus.BAD_REQUEST, "3002", "이미 이 박스에 가입 신청을 했거나 활동 중입니다."),
-    BOX_ACCESS_DENIED(HttpStatus.FORBIDDEN, "3003", "해당 박스에 대한 접근 권한이 없습니다."),
+    // Membership (3000 ~ 3999)
     CANNOT_MODIFY_SELF(HttpStatus.BAD_REQUEST, "3004", "자기 자신의 권한이나 상태를 변경할 수 없습니다."),
     HOLD_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "3005", "존재하지 않는 홀딩 요청입니다."),
-    BOX_MEMBER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "3006", "박스 회원 조회 권한이 없습니다."),
     LOCKER_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "3007", "이미 사용 중인 락커룸 번호입니다."),
     INVALID_MEMBERSHIP_PERIOD(HttpStatus.BAD_REQUEST, "3008", "회원권 종료일은 시작일 이후여야 합니다."),
 
