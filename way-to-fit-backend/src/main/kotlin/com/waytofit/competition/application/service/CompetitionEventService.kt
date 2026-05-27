@@ -39,7 +39,7 @@ class CompetitionEventService(
             emomDuration = command.emomDuration,
             weightUnit = command.weightUnit,
             order = command.order,
-            scaleCategories = command.scaleCategories,
+            scaleCategories = command.scaleCategories.map { it.trim() }.filter { it.isNotEmpty() },
             releaseAt = command.releaseAt,
             submissionDeadline = command.submissionDeadline
         )
@@ -71,7 +71,7 @@ class CompetitionEventService(
             emomDuration = if (command.emomDuration != null) command.emomDuration else event.emomDuration,
             weightUnit = if (command.weightUnit != null) command.weightUnit else event.weightUnit,
             order = command.order ?: event.order,
-            scaleCategories = command.scaleCategories ?: event.scaleCategories,
+            scaleCategories = command.scaleCategories?.map { it.trim() }?.filter { it.isNotEmpty() } ?: event.scaleCategories,
             releaseAt = if (command.releaseAt != null) command.releaseAt else event.releaseAt,
             submissionDeadline = command.submissionDeadline ?: event.submissionDeadline
         )

@@ -355,6 +355,7 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 **Acceptance criteria:**
 - [ ] `GET /api/competitions/{id}/events/{eventId}/leaderboard` — 이벤트 리더보드
 - [ ] `?gender=MEN&scaleCategory=RXD` 필터 동작
+- [ ] 스케일 카테고리 필터 미지정 시 전체 카테고리를 반환하되, 순위(rank)는 같은 (gender, scaleCategory) 그룹 내에서만 독립 계산
 - [ ] APPROVED / ADJUSTED 기록만 순위 집계 (SUBMITTED, REJECTED 제외)
 - [ ] DNF는 완주자 하위에 배치
 - [ ] 동점 처리: 동일 순위 부여 (dense rank 방식)
@@ -378,7 +379,10 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 **Acceptance criteria:**
 - [ ] `GET /api/competitions/{id}/stages/{stageId}/leaderboard` — 종합 리더보드
 - [ ] `?eventType=INDIVIDUAL` or `TEAM` 파라미터로 분리 조회
-- [ ] 순위 = 이벤트별 순위값 합산 (낮을수록 상위)
+- [ ] `?gender=MEN&scaleCategory=RXD` 파라미터로 특정 카테고리만 필터링 가능
+- [ ] 카테고리 미지정 시 전체 카테고리 표시, 종합 순위는 scaleCategory 그룹 내에서만 독립 계산
+- [ ] 순위 = 이벤트별 순위값 합산 (낮을수록 상위, 같은 scaleCategory 내에서만 비교)
+- [ ] 기권 선수의 페널티 순위 = 동일 scaleCategory 이벤트 참가자 수 + 1
 - [ ] Tie-breaker: 마지막 이벤트 순위 비교
 - [ ] `PATCH /api/competitions/{id}/stages/{stageId}/leaderboard/{registrationId}/rank` — 주최자 수동 순위 override
 

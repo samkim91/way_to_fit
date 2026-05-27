@@ -87,7 +87,7 @@ export const genderCategoryLabels: Record<GenderCategory, string> = {
 };
 
 export const wodTypeLabels: Record<WodType, string> = {
-  FOR_TIME: '시간 기록',
+  FOR_TIME: 'For Time Of',
   AMRAP: 'AMRAP',
   EMOM: 'EMOM',
   MAX_WEIGHT: '최대 중량',

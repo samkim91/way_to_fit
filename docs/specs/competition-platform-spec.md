@@ -276,7 +276,9 @@ data class CompetitionScore(
 ### Leaderboard (계산 기준)
 
 - **이벤트별 리더보드**: `eventId + gender + scaleCategory` 조합별 순위
+  - 순위는 항상 같은 (gender, scaleCategory) 그룹 내에서만 계산. scaleCategory 필터 미지정 시 전체 조합을 반환하되, 각 항목의 rank는 자신이 속한 조합 내 순위임 (RXD ↔ SCALED 순위 비교 없음).
 - **종합 리더보드**: Registration 단위로 INDIVIDUAL 이벤트 순위합 / TEAM 이벤트 순위합 분리 집계
+  - 종합 순위 역시 같은 scaleCategory 그룹 내에서만 계산. 기권 선수의 페널티 순위는 동일 scaleCategory 참가자 수 + 1.
 - **점수**: 순위값 합산, 낮을수록 좋음 (CrossFit 표준)
 - **Tie-breaker**: 마지막 이벤트 성적 우수자 자동 적용 + 주최자 수동 override
 

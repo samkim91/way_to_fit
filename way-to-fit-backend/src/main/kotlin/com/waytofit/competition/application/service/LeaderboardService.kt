@@ -8,6 +8,7 @@ import com.waytofit.competition.domain.enums.ScoreStatus
 import com.waytofit.global.common.response.ResponseCode
 import com.waytofit.global.error.BusinessException
 import com.waytofit.user.application.port.out.UserPersistencePort
+import com.waytofit.user.domain.enums.Gender
 import com.waytofit.competition.domain.enums.ResultStatus
 import com.waytofit.competition.domain.enums.WodType
 import org.springframework.cache.annotation.Cacheable
@@ -36,61 +37,72 @@ class LeaderboardService(
         val detailedScores = scoreRepository.findScoresWithDetailsByEventId(query.eventId, null)
             .filter { it.score.status == ScoreStatus.APPROVED || it.score.status == ScoreStatus.ADJUSTED }
 
-        val validEntries = detailedScores.filter { scoreDetails ->
-            val scaleMatch = query.scaleCategory == null || scoreDetails.scaleCategory == query.scaleCategory
-            val genderMatch = query.gender == null || scoreDetails.gender == query.gender
-            scaleMatch && genderMatch
-        }.map { scoreDetails ->
-            ScoreEntryData(
-                score = scoreDetails.score,
-                registrationId = scoreDetails.registrationId,
-                registrationType = scoreDetails.registrationType,
-                participantName = scoreDetails.participantName,
-                scaleCategory = scoreDetails.scaleCategory,
-                memberUserIds = scoreDetails.memberUserIds,
-                manualRank = scoreDetails.manualRank
-            )
-        }
-
-        val comparator = getComparator(event.wodType)
-        val sortedEntries = validEntries.sortedWith(comparator)
-
-        val finalEntries = mutableListOf<LeaderboardEntry>()
-        var currentRank = 1
-        var previousEntry: ScoreEntryData? = null
-        var rankOffset = 0
-
-        for (entry in sortedEntries) {
-            if (previousEntry != null) {
-                if (comparator.compare(previousEntry, entry) != 0) {
-                    currentRank += rankOffset
-                    rankOffset = 1
-                } else {
-                    rankOffset++
-                }
-            } else {
-                rankOffset = 1
+        // gender 필터를 먼저 적용해 그룹 수를 줄임
+        val genderFiltered = detailedScores.filter { query.gender == null || it.gender == query.gender }
+            .map { scoreDetails ->
+                ScoreEntryData(
+                    score = scoreDetails.score,
+                    registrationId = scoreDetails.registrationId,
+                    registrationType = scoreDetails.registrationType,
+                    participantName = scoreDetails.participantName,
+                    scaleCategory = scoreDetails.scaleCategory,
+                    gender = scoreDetails.gender,
+                    memberUserIds = scoreDetails.memberUserIds,
+                    manualRank = scoreDetails.manualRank
+                )
             }
 
-            finalEntries.add(
-                LeaderboardEntry(
-                    rank = currentRank,
-                    registrationId = entry.registrationId,
-                    registrationType = entry.registrationType,
-                    participantName = entry.participantName,
-                    scaleCategory = entry.scaleCategory,
-                    resultStatus = entry.score.resultStatus,
-                    resultTimeSeconds = entry.score.resultTimeSeconds,
-                    resultRounds = entry.score.resultRounds,
-                    resultReps = entry.score.resultReps,
-                    resultWeight = entry.score.resultWeight,
-                    resultCustom = entry.score.resultCustom,
-                    videoUrl = entry.score.videoUrl,
-                    memberIds = entry.memberUserIds,
-                    manualRank = entry.manualRank
+        // 순위는 항상 (gender, scaleCategory) 그룹 내에서만 독립적으로 계산
+        val comparator = getComparator(event.wodType)
+        val grouped = genderFiltered.groupBy { Pair(it.gender, it.scaleCategory) }
+
+        val allRankedEntries = mutableListOf<LeaderboardEntry>()
+
+        for ((_, groupEntries) in grouped.entries.sortedBy { it.key.toString() }) {
+            val sortedGroup = groupEntries.sortedWith(comparator)
+            var currentRank = 1
+            var previousEntry: ScoreEntryData? = null
+            var rankOffset = 0
+
+            for (entry in sortedGroup) {
+                if (previousEntry != null) {
+                    if (comparator.compare(previousEntry, entry) != 0) {
+                        currentRank += rankOffset
+                        rankOffset = 1
+                    } else {
+                        rankOffset++
+                    }
+                } else {
+                    rankOffset = 1
+                }
+
+                allRankedEntries.add(
+                    LeaderboardEntry(
+                        rank = currentRank,
+                        registrationId = entry.registrationId,
+                        registrationType = entry.registrationType,
+                        participantName = entry.participantName,
+                        scaleCategory = entry.scaleCategory,
+                        resultStatus = entry.score.resultStatus,
+                        resultTimeSeconds = entry.score.resultTimeSeconds,
+                        resultRounds = entry.score.resultRounds,
+                        resultReps = entry.score.resultReps,
+                        resultWeight = entry.score.resultWeight,
+                        resultCustom = entry.score.resultCustom,
+                        videoUrl = entry.score.videoUrl,
+                        memberIds = entry.memberUserIds,
+                        manualRank = entry.manualRank
+                    )
                 )
-            )
-            previousEntry = entry
+                previousEntry = entry
+            }
+        }
+
+        // scaleCategory 필터는 반환 범위를 결정 (순위 계산과 무관)
+        val finalEntries = if (query.scaleCategory != null) {
+            allRankedEntries.filter { it.scaleCategory == query.scaleCategory }
+        } else {
+            allRankedEntries
         }
 
         return EventLeaderboardResult(eventId = query.eventId, entries = finalEntries)
@@ -104,18 +116,21 @@ class LeaderboardService(
         val events = eventRepository.findAllByStageId(query.stageId).sortedBy { it.order }
         if (events.isEmpty()) return OverallLeaderboardResult(query.stageId, emptyList())
 
-        val eventResults = events.map { event ->
-            event.id!! to getEventLeaderboard(GetEventLeaderboardQuery(event.id, query.gender, query.scaleCategory))
-        }.toMap()
+        // scaleCategory=null로 호출해 모든 카테고리의 per-카테고리 순위를 확보
+        val eventResults = events.associate { event ->
+            event.id!! to getEventLeaderboard(GetEventLeaderboardQuery(event.id, query.gender, null))
+        }
 
-        val allRegistrationEntries = eventResults.values.flatMap { res -> res.entries }
+        // registrationType·scaleCategory 필터는 표시 범위만 결정
+        val displayEntries = eventResults.values.flatMap { it.entries }
             .filter { query.registrationType == null || it.registrationType == query.registrationType }
-            .groupBy { it.registrationId }
+            .filter { query.scaleCategory == null || it.scaleCategory == query.scaleCategory }
 
-        val overallEntries = mutableListOf<OverallEntryData>()
+        val allRegistrationEntries = displayEntries.groupBy { it.registrationId }
 
-        for ((regId, entries) in allRegistrationEntries) {
+        val overallEntries = allRegistrationEntries.map { (regId, entries) ->
             val firstEntry = entries.first()
+            val myScaleCategory = firstEntry.scaleCategory
             var totalPoints = 0
             val eventRanks = mutableMapOf<UUID, Int>()
 
@@ -123,62 +138,69 @@ class LeaderboardService(
                 val eventRes = eventResults[event.id!!]
                 val entry = eventRes?.entries?.find { it.registrationId == regId }
 
-                val rank = entry?.rank ?: (eventRes?.entries?.size ?: 0) + 1
+                // 기권 페널티는 동일 scaleCategory 참가자 수 기반
+                val penaltyRank = (eventRes?.entries?.count { it.scaleCategory == myScaleCategory } ?: 0) + 1
+                val rank = entry?.rank ?: penaltyRank
                 totalPoints += rank
-                eventRanks[event.id] = rank
+                eventRanks[event.id!!] = rank
             }
 
-            overallEntries.add(
-                OverallEntryData(
-                    registrationId = regId,
-                    participantName = firstEntry.participantName,
-                    scaleCategory = firstEntry.scaleCategory,
-                    totalPoints = totalPoints,
-                    eventRanks = eventRanks,
-                    manualRank = firstEntry.manualRank,
-                    memberIds = firstEntry.memberIds
-                )
+            OverallEntryData(
+                registrationId = regId,
+                participantName = firstEntry.participantName,
+                scaleCategory = firstEntry.scaleCategory,
+                totalPoints = totalPoints,
+                eventRanks = eventRanks,
+                manualRank = firstEntry.manualRank,
+                memberIds = firstEntry.memberIds
             )
         }
 
+        // 최종 순위는 scaleCategory 그룹별로 독립 계산
         val lastEventId = events.last().id!!
-        val sortedEntries = overallEntries.sortedWith(compareBy<OverallEntryData> { it.totalPoints }
-            .thenBy { it.eventRanks[lastEventId] ?: Int.MAX_VALUE })
-
         val finalEntries = mutableListOf<OverallLeaderboardEntry>()
-        var currentRank = 1
-        var previousEntry: OverallEntryData? = null
-        var rankOffset = 0
 
-        for (entry in sortedEntries) {
-            if (previousEntry != null) {
-                if (previousEntry.totalPoints != entry.totalPoints ||
-                    previousEntry.eventRanks[lastEventId] != entry.eventRanks[lastEventId]) {
-                    currentRank += rankOffset
-                    rankOffset = 1
-                } else {
-                    rankOffset++
-                }
-            } else {
-                rankOffset = 1
-            }
-
-            finalEntries.add(
-                OverallLeaderboardEntry(
-                    rank = entry.manualRank ?: currentRank,
-                    registrationId = entry.registrationId,
-                    participantName = entry.participantName,
-                    scaleCategory = entry.scaleCategory,
-                    totalPoints = entry.totalPoints,
-                    eventRanks = entry.eventRanks,
-                    manualRank = entry.manualRank,
-                    memberIds = entry.memberIds
-                )
+        val byCategory = overallEntries.groupBy { it.scaleCategory }
+        for ((_, categoryEntries) in byCategory.entries.sortedBy { it.key }) {
+            val sortedCategory = categoryEntries.sortedWith(
+                compareBy<OverallEntryData> { it.totalPoints }
+                    .thenBy { it.eventRanks[lastEventId] ?: Int.MAX_VALUE }
             )
-            previousEntry = entry
+
+            var currentRank = 1
+            var previousEntry: OverallEntryData? = null
+            var rankOffset = 0
+
+            for (entry in sortedCategory) {
+                if (previousEntry != null) {
+                    if (previousEntry.totalPoints != entry.totalPoints ||
+                        previousEntry.eventRanks[lastEventId] != entry.eventRanks[lastEventId]) {
+                        currentRank += rankOffset
+                        rankOffset = 1
+                    } else {
+                        rankOffset++
+                    }
+                } else {
+                    rankOffset = 1
+                }
+
+                finalEntries.add(
+                    OverallLeaderboardEntry(
+                        rank = entry.manualRank ?: currentRank,
+                        registrationId = entry.registrationId,
+                        participantName = entry.participantName,
+                        scaleCategory = entry.scaleCategory,
+                        totalPoints = entry.totalPoints,
+                        eventRanks = entry.eventRanks,
+                        manualRank = entry.manualRank,
+                        memberIds = entry.memberIds
+                    )
+                )
+                previousEntry = entry
+            }
         }
 
-        return OverallLeaderboardResult(stageId = query.stageId, entries = finalEntries.sortedBy { it.rank })
+        return OverallLeaderboardResult(stageId = query.stageId, entries = finalEntries)
     }
 
     @Transactional
@@ -225,6 +247,7 @@ class LeaderboardService(
         val registrationType: RegistrationType,
         val participantName: String,
         val scaleCategory: String,
+        val gender: Gender,
         val memberUserIds: List<UUID>,
         val manualRank: Int?
     )

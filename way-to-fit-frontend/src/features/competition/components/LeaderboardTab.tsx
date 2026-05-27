@@ -4,13 +4,14 @@ import { leaderboardApi, stageApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Maximize2, Wifi, WifiOff } from 'lucide-react';
 import { useCompetitionWebSocket } from '@/hooks/useCompetitionWebSocket';
 
 export function LeaderboardTab() {
   const { competitionId } = useOutletContext<{ competitionId: string }>();
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  const [scaleCategory, setScaleCategory] = useState<string>('ALL');
   const [wsConnected, setWsConnected] = useState(false);
   const [wsData, setWsData] = useState<any>(null);
 
@@ -48,6 +49,18 @@ export function LeaderboardTab() {
 
   const leaderboard = wsData || initialLeaderboard;
 
+  const allScaleCategories = useMemo(
+    () => Array.from(new Set((leaderboard?.entries ?? []).map((e: any) => e.scaleCategory as string))).sort(),
+    [leaderboard],
+  );
+
+  const displayEntries = useMemo(
+    () => scaleCategory === 'ALL'
+      ? (leaderboard?.entries ?? [])
+      : (leaderboard?.entries ?? []).filter((e: any) => e.scaleCategory === scaleCategory),
+    [leaderboard, scaleCategory],
+  );
+
   const handleFullscreen = () => {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
@@ -70,6 +83,19 @@ export function LeaderboardTab() {
               ))}
             </SelectContent>
           </Select>
+          {allScaleCategories.length > 0 && (
+            <Select value={scaleCategory} onValueChange={setScaleCategory}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">스케일 전체</SelectItem>
+                {allScaleCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="flex items-center space-x-4">
           <div className={`flex items-center px-3 py-1 rounded-full text-xs ${wsConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -95,10 +121,10 @@ export function LeaderboardTab() {
           <TableBody>
             {isLoading && !wsData ? (
               <TableRow><TableCell colSpan={4} className="text-center">로딩 중...</TableCell></TableRow>
-            ) : !leaderboard?.entries || leaderboard.entries.length === 0 ? (
+            ) : displayEntries.length === 0 ? (
               <TableRow><TableCell colSpan={4} className="text-center">데이터가 없습니다.</TableCell></TableRow>
             ) : (
-              leaderboard.entries.map((entry: any) => (
+              displayEntries.map((entry: any) => (
                 <TableRow key={entry.registrationId}>
                   <TableCell className="text-center font-bold">{entry.rank}</TableCell>
                   <TableCell className="font-medium">
