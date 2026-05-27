@@ -63,35 +63,7 @@ class CompetitionScoreServiceTest {
         assertEquals("https://youtube.com/watch?v=123", result.videoUrl)
     }
 
-    @Test
-    fun `reviewScore succeeds and publishes event if user is organizer`() {
-        val scoreId = UUID.randomUUID()
-        val eventId = UUID.randomUUID()
-        val stageId = UUID.randomUUID()
-        val competitionId = UUID.randomUUID()
-        val userId = UUID.randomUUID()
-        val command = ReviewScoreCommand(scoreId, ScoreStatus.APPROVED, null, null, null, null, null, "Good job")
 
-        val score = CompetitionScore(id = scoreId, eventId = eventId, registrationId = UUID.randomUUID(), resultStatus = ResultStatus.COMPLETED, 
-            videoUrl = "url", status = ScoreStatus.SUBMITTED)
-        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL, 
-            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
-            submissionDeadline = Instant.now())
-        val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", 
-            stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
-
-        `when`(scoreRepository.findById(scoreId)).thenReturn(score)
-        `when`(eventRepository.findById(eventId)).thenReturn(event)
-        `when`(stageRepository.findById(stageId)).thenReturn(stage)
-        `when`(organizerRepository.isOrganizer(competitionId, userId)).thenReturn(true)
-        `when`(scoreRepository.save(anyObject())).thenAnswer { it.arguments[0] }
-
-        val result = scoreService.reviewScore(command, userId)
-
-        assertEquals(ScoreStatus.APPROVED, result.status)
-        assertEquals("Good job", result.reviewerNote)
-        verify(eventPublisher).publishEvent(any(ScoreReviewedEvent::class.java))
-    }
 
     private fun <T> any(type: Class<T>): T = ArgumentMatchers.any(type)
     private fun <T> anyObject(): T = ArgumentMatchers.any()

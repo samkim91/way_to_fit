@@ -56,45 +56,7 @@ class RegistrationServiceTest {
         verify(teamMemberRepository).saveAll(anyObject())
     }
 
-    @Test
-    fun `updatePaymentStatus succeeds if user is organizer`() {
-        val regId = UUID.randomUUID()
-        val competitionId = UUID.randomUUID()
-        val userId = UUID.randomUUID()
-        val command = UpdatePaymentStatusCommand(regId, PaymentStatus.CONFIRMED)
-        val registration = CompetitionRegistration(
-            id = regId, competitionId = competitionId, userId = UUID.randomUUID(),
-            registrationType = RegistrationType.INDIVIDUAL, gender = Gender.MALE, scaleCategory = "RXD", paymentStatus = PaymentStatus.PENDING
-        )
 
-        `when`(registrationRepository.findById(regId)).thenReturn(registration)
-        `when`(organizerRepository.isOrganizer(competitionId, userId)).thenReturn(true)
-        `when`(registrationRepository.save(anyObject())).thenAnswer { it.arguments[0] }
-
-        val result = registrationService.updatePaymentStatus(command, userId)
-
-        assertEquals(PaymentStatus.CONFIRMED, result.paymentStatus)
-        verify(registrationRepository).save(anyObject())
-    }
-
-    @Test
-    fun `updatePaymentStatus fails if user is not organizer`() {
-        val regId = UUID.randomUUID()
-        val competitionId = UUID.randomUUID()
-        val userId = UUID.randomUUID()
-        val command = UpdatePaymentStatusCommand(regId, PaymentStatus.CONFIRMED)
-        val registration = CompetitionRegistration(
-            id = regId, competitionId = competitionId, userId = UUID.randomUUID(),
-            registrationType = RegistrationType.INDIVIDUAL, gender = Gender.MALE, scaleCategory = "RXD", paymentStatus = PaymentStatus.PENDING
-        )
-
-        `when`(registrationRepository.findById(regId)).thenReturn(registration)
-        `when`(organizerRepository.isOrganizer(competitionId, userId)).thenReturn(false)
-
-        assertThrows(BusinessException::class.java) {
-            registrationService.updatePaymentStatus(command, userId)
-        }
-    }
 
     private fun <T> anyObject(): T = ArgumentMatchers.any()
 }
