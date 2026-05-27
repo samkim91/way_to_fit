@@ -29,6 +29,7 @@ AthleteProfileResponseDto _$AthleteProfileResponseDtoFromJson(
 ) => AthleteProfileResponseDto(
   id: json['id'] as String?,
   userId: json['userId'] as String,
+  name: json['name'] as String,
   biography: json['biography'] as String?,
   profileImageUrl: json['profileImageUrl'] as String?,
 );
@@ -38,6 +39,7 @@ Map<String, dynamic> _$AthleteProfileResponseDtoToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'userId': instance.userId,
+  'name': instance.name,
   'biography': instance.biography,
   'profileImageUrl': instance.profileImageUrl,
 };

@@ -36,12 +36,14 @@ class AthleteProfileResponseDto {
   const AthleteProfileResponseDto({
     required this.id,
     required this.userId,
+    required this.name,
     required this.biography,
     required this.profileImageUrl,
   });
 
   final String? id;
   final String userId;
+  final String name;
   final String? biography;
   final String? profileImageUrl;
 
@@ -52,6 +54,7 @@ class AthleteProfileResponseDto {
 
   AthleteProfile toDomain() => AthleteProfile(
     userId: userId,
+    name: name,
     biography: biography,
     profileImageUrl: profileImageUrl,
   );

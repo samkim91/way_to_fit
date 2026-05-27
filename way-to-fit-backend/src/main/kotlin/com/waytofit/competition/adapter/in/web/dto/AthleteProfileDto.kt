@@ -6,6 +6,7 @@ import java.util.UUID
 data class AthleteProfileResponse(
     val id: UUID?,
     val userId: UUID,
+    val name: String,
     val biography: String?,
     val profileImageUrl: String?,
 ) {
@@ -13,6 +14,7 @@ data class AthleteProfileResponse(
         fun fromDomain(domain: AthleteProfile) = AthleteProfileResponse(
             id = domain.id,
             userId = domain.userId,
+            name = domain.name,
             biography = domain.biography,
             profileImageUrl = domain.profileImageUrl
         )

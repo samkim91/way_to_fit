@@ -25,12 +25,6 @@ class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('대회'),
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/login'),
-            icon: const Icon(Icons.badge_outlined),
-          ),
-        ],
       ),
       body: SafeArea(
         child: AsyncValueView(

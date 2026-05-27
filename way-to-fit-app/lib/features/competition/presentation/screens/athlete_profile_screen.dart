@@ -36,7 +36,7 @@ class AthleteProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '선수 ${bundle.profile.userId.substring(0, 8)}',
+                  bundle.profile.name,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),

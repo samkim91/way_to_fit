@@ -264,11 +264,13 @@ class OverallLeaderboardEntry {
 class AthleteProfile {
   AthleteProfile({
     required this.userId,
+    required this.name,
     required this.biography,
     required this.profileImageUrl,
   });
 
   final String userId;
+  final String name;
   final String? biography;
   final String? profileImageUrl;
 }

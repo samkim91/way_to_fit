@@ -29,8 +29,10 @@ class AthleteProfileService(
 
     @Transactional(readOnly = true)
     override fun getAthleteProfile(userId: UUID): AthleteProfile {
-        return athleteProfileRepository.findByUserId(userId)
+        val profile = athleteProfileRepository.findByUserId(userId)
             ?: throw BusinessException(ResponseCode.NOT_FOUND, "선수 프로필을 찾을 수 없습니다.")
+        val user = userPersistencePort.findById(userId)
+        return profile.copy(name = user?.name ?: "")
     }
 
     override fun updateAthleteProfile(userId: UUID, command: UpdateAthleteProfileCommand): AthleteProfile {
@@ -42,7 +44,9 @@ class AthleteProfileService(
             profileImageUrl = command.profileImageUrl
         )
 
-        return athleteProfileRepository.save(updatedProfile)
+        val saved = athleteProfileRepository.save(updatedProfile)
+        val user = userPersistencePort.findById(userId)
+        return saved.copy(name = user?.name ?: "")
     }
 
     override fun createProfileIfNotExists(userId: UUID) {

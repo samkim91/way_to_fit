@@ -32,6 +32,7 @@ class AthleteProfileEntity(
     fun toDomain(): AthleteProfile = AthleteProfile(
         id = id,
         userId = userId,
+        name = "",
         biography = biography,
         profileImageUrl = profileImageUrl
     )
