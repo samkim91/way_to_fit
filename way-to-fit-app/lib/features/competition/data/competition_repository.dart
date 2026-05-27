@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:dio/dio.dart';
+
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../core/api/dto/api_response_dto.dart';
@@ -71,6 +73,17 @@ abstract class CompetitionRepository {
   });
   Future<AthleteProfile> getAthleteProfile(String userId);
   Future<List<CompetitionHistoryItem>> getAthleteHistory(String userId);
+  Future<EventLineup> setEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+    List<String> memberIds,
+  );
+  Future<EventLineup?> getEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  );
 }
 
 class CompetitionRepositoryImpl implements CompetitionRepository {
@@ -252,6 +265,41 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
     return _requireData<AthleteCompetitionHistoryResponseDto>(
       response,
     ).items.map((item) => item.toDomain()).toList();
+  }
+
+  @override
+  Future<EventLineup> setEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+    List<String> memberIds,
+  ) async {
+    final response = await _service.setEventLineup(
+      competitionId,
+      eventId,
+      registrationId,
+      SetLineupRequestDto(participatingMemberIds: memberIds),
+    );
+    return _requireData<EventLineupResponseDto>(response).toDomain();
+  }
+
+  @override
+  Future<EventLineup?> getEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  ) async {
+    try {
+      final response = await _service.getEventLineup(
+        competitionId,
+        eventId,
+        registrationId,
+      );
+      return response.data?.toDomain();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
 
   T _requireData<T>(ApiResponseDto<T> response) {

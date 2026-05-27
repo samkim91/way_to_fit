@@ -2,18 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/competition/presentation/screens/athlete_profile_screen.dart';
-import '../../features/competition/presentation/screens/competition_detail_screen.dart';
-import '../../features/competition/presentation/screens/competition_list_screen.dart';
-import '../../features/competition/presentation/screens/individual_reg_screen.dart';
-import '../../features/competition/presentation/screens/leaderboard_screen.dart';
-import '../../features/competition/presentation/screens/score_submit_screen.dart';
-import '../../features/competition/presentation/screens/team_reg_screen.dart';
+import '../auth/auth_session.dart';
+import '../../../features/auth/presentation/screens/login_screen.dart';
+import '../../../features/competition/domain/models.dart';
+import '../../../features/competition/presentation/screens/athlete_profile_screen.dart';
+import '../../../features/competition/presentation/screens/competition_detail_screen.dart';
+import '../../../features/competition/presentation/screens/competition_list_screen.dart';
+import '../../../features/competition/presentation/screens/event_lineup_screen.dart';
+import '../../../features/competition/presentation/screens/individual_reg_screen.dart';
+import '../../../features/competition/presentation/screens/leaderboard_screen.dart';
+import '../../../features/competition/presentation/screens/score_submit_screen.dart';
+import '../../../features/competition/presentation/screens/team_reg_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = ValueNotifier<int>(0);
+  ref.listen(authControllerProvider, (prev, next) => notifier.value++);
+  ref.onDispose(notifier.dispose);
+
   return GoRouter(
     initialLocation: '/competitions',
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final authState = ref.read(authControllerProvider).valueOrNull;
+      final isAuthenticated = authState?.isAuthenticated ?? false;
+      final isLoginRoute = state.matchedLocation == '/login';
+
+      if (!isAuthenticated && !isLoginRoute) return '/login';
+      if (isAuthenticated && isLoginRoute) return '/competitions';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/competitions',
@@ -52,6 +69,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       state.uri.queryParameters['registrationId'] ?? '',
                 ),
               ),
+              GoRoute(
+                path: 'lineup',
+                builder: (_, state) {
+                  final members =
+                      (state.extra as List<TeamMember>?) ?? const [];
+                  return EventLineupScreen(
+                    competitionId: state.pathParameters['competitionId']!,
+                    registrationId:
+                        state.uri.queryParameters['registrationId'] ?? '',
+                    members: members,
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -61,7 +91,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             AthleteProfileScreen(userId: state.pathParameters['userId']!),
       ),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
     ],
     errorBuilder: (_, state) =>
         Scaffold(body: Center(child: Text('페이지를 찾을 수 없습니다: ${state.uri}'))),

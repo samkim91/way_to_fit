@@ -71,6 +71,45 @@ class RegisterTeamRequestDto {
 }
 
 @JsonSerializable()
+class SetLineupRequestDto {
+  const SetLineupRequestDto({required this.participatingMemberIds});
+
+  final List<String> participatingMemberIds;
+
+  factory SetLineupRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$SetLineupRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SetLineupRequestDtoToJson(this);
+}
+
+@JsonSerializable()
+class EventLineupResponseDto {
+  const EventLineupResponseDto({
+    required this.id,
+    required this.eventId,
+    required this.registrationId,
+    required this.participatingMemberIds,
+  });
+
+  final String id;
+  final String eventId;
+  final String registrationId;
+  final List<String> participatingMemberIds;
+
+  factory EventLineupResponseDto.fromJson(Map<String, dynamic> json) =>
+      _$EventLineupResponseDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EventLineupResponseDtoToJson(this);
+
+  EventLineup toDomain() => EventLineup(
+    id: id,
+    eventId: eventId,
+    registrationId: registrationId,
+    participatingMemberIds: participatingMemberIds,
+  );
+}
+
+@JsonSerializable()
 class RegistrationResponseDto {
   const RegistrationResponseDto({
     required this.id,

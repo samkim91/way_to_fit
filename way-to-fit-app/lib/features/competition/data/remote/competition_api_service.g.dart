@@ -512,6 +512,78 @@ class _CompetitionApiService implements CompetitionApiService {
     return _value;
   }
 
+  @override
+  Future<ApiResponseDto<EventLineupResponseDto>> setEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+    SetLineupRequestDto body,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<ApiResponseDto<EventLineupResponseDto>>(
+      Options(method: 'PUT', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/competitions/${competitionId}/events/${eventId}/lineups/${registrationId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ApiResponseDto<EventLineupResponseDto> _value;
+    try {
+      _value = ApiResponseDto<EventLineupResponseDto>.fromJson(
+        _result.data!,
+        (json) =>
+            EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ApiResponseDto<EventLineupResponseDto>> getEventLineup(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ApiResponseDto<EventLineupResponseDto>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/competitions/${competitionId}/events/${eventId}/lineups/${registrationId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ApiResponseDto<EventLineupResponseDto> _value;
+    try {
+      _value = ApiResponseDto<EventLineupResponseDto>.fromJson(
+        _result.data!,
+        (json) =>
+            EventLineupResponseDto.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

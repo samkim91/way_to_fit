@@ -13,7 +13,11 @@ final apiBaseUrlProvider = Provider<String>((ref) {
   );
 });
 
+final cookieJarProvider = Provider<CookieJar>((ref) => CookieJar());
+
 final dioProvider = Provider<Dio>((ref) {
+  final cookieJar = ref.watch(cookieJarProvider);
+
   final dio = Dio(
     BaseOptions(
       baseUrl: ref.watch(apiBaseUrlProvider),
@@ -23,7 +27,7 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(CookieManager(CookieJar()));
+  dio.interceptors.add(CookieManager(cookieJar));
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -50,7 +54,8 @@ final dioProvider = Provider<Dio>((ref) {
               receiveTimeout: const Duration(seconds: 15),
             ),
           );
-          refreshDio.interceptors.add(CookieManager(CookieJar()));
+          // 동일한 cookieJar 공유: RT 쿠키를 refreshDio도 전송할 수 있게 함
+          refreshDio.interceptors.add(CookieManager(cookieJar));
           try {
             final response = await refreshDio.post('/api/auth/reissue');
             final newToken =

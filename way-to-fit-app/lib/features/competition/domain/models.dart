@@ -191,10 +191,25 @@ class Registration {
 }
 
 class TeamMember {
-  TeamMember({required this.userId, required this.gender});
+  TeamMember({required this.userId, required this.gender, this.name});
 
   final String userId;
   final String gender;
+  final String? name;
+}
+
+class EventLineup {
+  EventLineup({
+    required this.id,
+    required this.eventId,
+    required this.registrationId,
+    required this.participatingMemberIds,
+  });
+
+  final String id;
+  final String eventId;
+  final String registrationId;
+  final List<String> participatingMemberIds;
 }
 
 class LeaderboardEntry {

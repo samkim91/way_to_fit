@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../data/competition_repository.dart';
 import '../../domain/models.dart';
@@ -97,30 +98,50 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
     }
 
     setState(() => _submitting = true);
-    String? successMessage;
+    Registration? registrationResult;
     Object? submitError;
     try {
-      final result = await ref.read(competitionRepositoryProvider).registerTeam(
-        widget.competitionId,
-        teamName: teamName,
-        scaleCategory: _scaleCategory,
-        members: _members.map((m) => (userId: m.athlete.userId, gender: m.gender)).toList(),
-        paymentNote: _paymentNoteController.text.trim().isEmpty
-            ? null
-            : _paymentNoteController.text.trim(),
-      );
-      successMessage = '팀 신청이 완료되었습니다. 현재 상태: ${result.paymentStatus.label}';
+      registrationResult = await ref
+          .read(competitionRepositoryProvider)
+          .registerTeam(
+            widget.competitionId,
+            teamName: teamName,
+            scaleCategory: _scaleCategory,
+            members: _members
+                .map((m) => (userId: m.athlete.userId, gender: m.gender))
+                .toList(),
+            paymentNote: _paymentNoteController.text.trim().isEmpty
+                ? null
+                : _paymentNoteController.text.trim(),
+          );
     } catch (error) {
       submitError = error;
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
     if (!mounted) return;
-    if (successMessage != null) {
+    if (registrationResult != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successMessage)),
+        SnackBar(
+          content: Text(
+            '팀 신청이 완료되었습니다. 현재 상태: ${registrationResult.paymentStatus.label}',
+          ),
+        ),
       );
-      Navigator.of(context).pop();
+      // 팀 신청 완료 후 이벤트 라인업 설정 화면으로 이동
+      if (context.mounted) {
+        final membersWithNames = _members
+            .map((m) => TeamMember(
+                  userId: m.athlete.userId,
+                  gender: m.gender,
+                  name: m.athlete.name,
+                ))
+            .toList();
+        context.push(
+          '/competitions/${widget.competitionId}/lineup?registrationId=${registrationResult.id}',
+          extra: membersWithNames,
+        );
+      }
     } else if (submitError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(submitError.toString())),

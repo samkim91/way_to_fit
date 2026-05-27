@@ -91,4 +91,19 @@ abstract class CompetitionApiService {
   @GET('/api/athletes/{userId}/competitions')
   Future<ApiResponseDto<AthleteCompetitionHistoryResponseDto>>
   getAthleteHistory(@Path('userId') String userId);
+
+  @PUT('/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}')
+  Future<ApiResponseDto<EventLineupResponseDto>> setEventLineup(
+    @Path('competitionId') String competitionId,
+    @Path('eventId') String eventId,
+    @Path('registrationId') String registrationId,
+    @Body() SetLineupRequestDto body,
+  );
+
+  @GET('/api/competitions/{competitionId}/events/{eventId}/lineups/{registrationId}')
+  Future<ApiResponseDto<EventLineupResponseDto>> getEventLineup(
+    @Path('competitionId') String competitionId,
+    @Path('eventId') String eventId,
+    @Path('registrationId') String registrationId,
+  );
 }
