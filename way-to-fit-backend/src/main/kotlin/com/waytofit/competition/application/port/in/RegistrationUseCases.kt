@@ -28,8 +28,13 @@ interface GetEventLineupUseCase {
     fun getEventLineup(eventId: UUID, registrationId: UUID): EventLineup?
 }
 
+data class RegistrationWithName(
+    val registration: CompetitionRegistration,
+    val athleteName: String?,
+)
+
 interface OrganizerRegistrationQueryUseCase {
-    fun getRegistrations(competitionId: UUID, paymentStatus: PaymentStatus?, pageable: Pageable, userId: UUID): Page<CompetitionRegistration>
+    fun getRegistrations(competitionId: UUID, paymentStatus: PaymentStatus?, pageable: Pageable, userId: UUID): Page<RegistrationWithName>
 }
 
 interface OrganizerRegistrationCommandUseCase {

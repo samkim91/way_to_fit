@@ -6,6 +6,7 @@ import com.waytofit.competition.application.port.out.CompetitionRegistrationRepo
 import com.waytofit.competition.application.port.out.CompetitionRepository
 import com.waytofit.competition.application.port.out.CompetitionTeamMemberRepository
 import com.waytofit.competition.application.port.out.EventLineupRepository
+import com.waytofit.competition.application.port.out.UserQueryPort
 import com.waytofit.competition.domain.CompetitionRegistration
 import com.waytofit.competition.domain.CompetitionTeamMember
 import com.waytofit.competition.domain.EventLineup
@@ -30,6 +31,7 @@ class RegistrationService(
     private val eventLineupRepository: EventLineupRepository,
     private val organizerRepository: CompetitionOrganizerRepository,
     private val athleteProfileRepository: com.waytofit.competition.application.port.out.AthleteProfileRepository,
+    private val userQueryPort: UserQueryPort,
 ) : RegisterIndividualUseCase, RegisterTeamUseCase, GetRegistrationUseCase, SetEventLineupUseCase, GetEventLineupUseCase,
     OrganizerRegistrationQueryUseCase, OrganizerRegistrationCommandUseCase, SearchTeamMemberUseCase {
 
@@ -160,11 +162,22 @@ class RegistrationService(
         paymentStatus: PaymentStatus?,
         pageable: Pageable,
         userId: UUID
-    ): Page<CompetitionRegistration> {
+    ): Page<RegistrationWithName> {
         if (!organizerRepository.isOrganizer(competitionId, userId)) {
             throw BusinessException(ResponseCode.FORBIDDEN)
         }
-        return registrationRepository.findRegistrationsByCompetitionId(competitionId, paymentStatus, pageable)
+        val registrations = registrationRepository.findRegistrationsByCompetitionId(competitionId, paymentStatus, pageable)
+        val individualUserIds = registrations.content
+            .filter { it.registrationType == RegistrationType.INDIVIDUAL }
+            .map { it.userId }
+            .toSet()
+        val nameMap = userQueryPort.findNamesByIds(individualUserIds)
+        return registrations.map { reg ->
+            RegistrationWithName(
+                registration = reg,
+                athleteName = if (reg.registrationType == RegistrationType.INDIVIDUAL) nameMap[reg.userId] else null,
+            )
+        }
     }
 
     override fun updatePaymentStatus(command: UpdatePaymentStatusCommand, userId: UUID): CompetitionRegistration {

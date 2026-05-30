@@ -164,6 +164,7 @@ export interface Registration {
   id: string;
   competitionId: string;
   userId: string;
+  athleteName: string | null;
   registrationType: RegistrationType;
   teamName: string | null;
   scaleCategory: string;

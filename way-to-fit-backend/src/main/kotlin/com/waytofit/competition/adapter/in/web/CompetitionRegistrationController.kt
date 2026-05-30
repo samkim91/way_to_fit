@@ -83,7 +83,7 @@ class CompetitionRegistrationController(
         @CurrentUserId userId: UUID
     ): ApiResponse<Page<RegistrationResponse>> {
         val registrations = organizerRegistrationQueryUseCase.getRegistrations(competitionId, paymentStatus, pageable, userId)
-        return ApiResponse.success(registrations.map { RegistrationResponse.fromDomain(it) })
+        return ApiResponse.success(registrations.map { RegistrationResponse.fromDomain(it.registration, athleteName = it.athleteName) })
     }
 
     @Operation(summary = "[주최자] 결제 상태 변경 (승인/거절)")

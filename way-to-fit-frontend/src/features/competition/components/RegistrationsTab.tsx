@@ -56,7 +56,7 @@ export function RegistrationsTab() {
               filtered.map(reg => (
                 <TableRow key={reg.id}>
                   <TableCell className="font-medium">
-                    {reg.registrationType === 'TEAM' ? reg.teamName : reg.userId.substring(0, 8)}
+                    {reg.registrationType === 'TEAM' ? reg.teamName : (reg.athleteName ?? reg.userId.substring(0, 8))}
                   </TableCell>
                   <TableCell>{reg.registrationType === 'TEAM' ? '팀전' : '개인전'}</TableCell>
                   <TableCell>{reg.scaleCategory}</TableCell>

@@ -66,6 +66,7 @@ data class RegistrationResponse(
     val id: UUID,
     val competitionId: UUID,
     val userId: UUID,
+    val athleteName: String?,
     val registrationType: RegistrationType,
     val teamName: String?,
     val scaleCategory: String,
@@ -76,10 +77,15 @@ data class RegistrationResponse(
     val createdAt: Instant?,
 ) {
     companion object {
-        fun fromDomain(domain: CompetitionRegistration, members: List<CompetitionTeamMember>? = null) = RegistrationResponse(
+        fun fromDomain(
+            domain: CompetitionRegistration,
+            members: List<CompetitionTeamMember>? = null,
+            athleteName: String? = null,
+        ) = RegistrationResponse(
             id = domain.id!!,
             competitionId = domain.competitionId,
             userId = domain.userId,
+            athleteName = athleteName,
             registrationType = domain.registrationType,
             teamName = domain.teamName,
             scaleCategory = domain.scaleCategory,
