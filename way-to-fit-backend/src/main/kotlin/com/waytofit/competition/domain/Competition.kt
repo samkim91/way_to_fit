@@ -19,6 +19,7 @@ data class Competition(
     val registrationEndAt: Instant,
     val visibility: CompetitionVisibility,
     val bankInfo: BankInfo,
+    val scaleCategories: List<String> = emptyList(),
     val audit: AuditInfo = AuditInfo.empty(),
 ) {
     init {

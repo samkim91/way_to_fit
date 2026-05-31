@@ -28,14 +28,17 @@ export function CompetitionCreatePage() {
     bannerImageUrl: '',
   });
 
+  const [scaleCategoriesInput, setScaleCategoriesInput] = useState('');
+
   const mutation = useMutation({
-    mutationFn: (data: typeof formData) => {
+    mutationFn: ({ formData: data, scaleCategories }: { formData: typeof formData; scaleCategories: string[] }) => {
       return competitionApi.createCompetition({
         ...data,
         startAt: new Date(data.startAt).toISOString(),
         endAt: new Date(data.endAt).toISOString(),
         registrationStartAt: new Date(data.registrationStartAt).toISOString(),
         registrationEndAt: new Date(data.registrationEndAt).toISOString(),
+        scaleCategories,
       });
     },
     onSuccess: (res) => {
@@ -50,7 +53,12 @@ export function CompetitionCreatePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    const scaleCategories = scaleCategoriesInput.split(',').map((s) => s.trim()).filter(Boolean);
+    if (scaleCategories.length === 0) {
+      alert('참가 부문을 하나 이상 입력해주세요.');
+      return;
+    }
+    mutation.mutate({ formData, scaleCategories });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -80,6 +88,19 @@ export function CompetitionCreatePage() {
             <div className="space-y-2">
               <Label htmlFor="description">설명</Label>
               <Textarea id="description" name="description" value={formData.description} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="scaleCategories">참가 부문 (쉼표로 구분) *</Label>
+              <Input
+                id="scaleCategories"
+                value={scaleCategoriesInput}
+                onChange={(e) => setScaleCategoriesInput(e.target.value)}
+                placeholder="예: RXD, SCALED, MASTERS"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                등록 신청 및 이벤트에서 선택 가능한 부문 목록입니다.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="startAt">대회 기간 *</Label>

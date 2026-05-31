@@ -31,6 +31,7 @@ data class CreateCompetitionCommand(
     val accountNumber: String,
     val accountHolder: String,
     val entryFee: Int = 0,
+    val scaleCategories: List<String> = emptyList(),
 )
 
 data class UpdateCompetitionCommand(
@@ -47,4 +48,5 @@ data class UpdateCompetitionCommand(
     val accountNumber: String?,
     val accountHolder: String?,
     val entryFee: Int?,
+    val scaleCategories: List<String>? = null,
 )

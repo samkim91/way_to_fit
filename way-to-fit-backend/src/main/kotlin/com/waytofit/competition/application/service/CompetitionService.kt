@@ -48,7 +48,8 @@ class CompetitionService(
                 accountNumber = command.accountNumber,
                 accountHolder = command.accountHolder,
                 entryFee = command.entryFee
-            )
+            ),
+            scaleCategories = command.scaleCategories,
         )
         val savedCompetition = competitionRepository.save(competition)
         competitionOrganizerRepository.saveOrganizer(savedCompetition.id!!, creatorId)
@@ -77,7 +78,8 @@ class CompetitionService(
                 accountNumber = command.accountNumber ?: competition.bankInfo.accountNumber,
                 accountHolder = command.accountHolder ?: competition.bankInfo.accountHolder,
                 entryFee = command.entryFee ?: competition.bankInfo.entryFee
-            )
+            ),
+            scaleCategories = command.scaleCategories ?: competition.scaleCategories,
         )
 
         val savedCompetition = competitionRepository.save(updatedCompetition)
