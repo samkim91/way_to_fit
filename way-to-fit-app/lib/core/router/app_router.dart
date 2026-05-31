@@ -8,6 +8,7 @@ import '../../../features/competition/domain/models.dart';
 import '../../../features/competition/presentation/screens/athlete_profile_screen.dart';
 import '../../../features/competition/presentation/screens/competition_detail_screen.dart';
 import '../../../features/competition/presentation/screens/competition_list_screen.dart';
+import '../../../features/competition/presentation/screens/event_detail_screen.dart';
 import '../../../features/competition/presentation/screens/event_lineup_screen.dart';
 import '../../../features/competition/presentation/screens/individual_reg_screen.dart';
 import '../../../features/competition/presentation/screens/leaderboard_screen.dart';
@@ -109,6 +110,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 competition: competition,
               );
             },
+          ),
+          GoRoute(
+            path: 'events/:eventId',
+            builder: (_, state) => EventDetailScreen(
+              competitionId: state.pathParameters['competitionId']!,
+              eventId: state.pathParameters['eventId']!,
+            ),
           ),
           GoRoute(
             path: 'submit-score',

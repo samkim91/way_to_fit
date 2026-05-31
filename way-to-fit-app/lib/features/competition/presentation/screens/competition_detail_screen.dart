@@ -9,33 +9,12 @@ import '../../domain/models.dart';
 import '../providers/competition_providers.dart';
 import '../widgets/competition_status_badge.dart';
 
-CompetitionEvent? _firstEventForReg(
-  List<CompetitionStageBundle> stages,
-  Registration reg,
-) {
-  for (final stageBundle in stages) {
-    for (final event in stageBundle.events) {
-      final type = event.eventType == 'TEAM'
-          ? RegistrationType.team
-          : RegistrationType.individual;
-      if (type == reg.registrationType) return event;
-    }
-  }
-  return null;
-}
 
 class CompetitionDetailScreen extends ConsumerWidget {
   const CompetitionDetailScreen({super.key, required this.competitionId});
 
   final String competitionId;
 
-  Registration? _findRegistration(List<Registration> registrations, String eventType) {
-    final type = eventType == 'TEAM' ? RegistrationType.team : RegistrationType.individual;
-    for (final r in registrations) {
-      if (r.registrationType == type) return r;
-    }
-    return null;
-  }
 
   void _showRegistrationTypeSelector(BuildContext context, Competition competition) {
     showModalBottomSheet<void>(
@@ -97,6 +76,12 @@ class CompetitionDetailScreen extends ConsumerWidget {
         title: const Text('대회 상세'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.leaderboard),
+            onPressed: () => context.push('/competitions/$competitionId/leaderboard'),
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: AsyncValueView(
@@ -150,16 +135,17 @@ class CompetitionDetailScreen extends ConsumerWidget {
           }
 
           return Scaffold(
-            bottomNavigationBar: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
+            backgroundColor: Colors.transparent,
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
                         onPressed: isButtonEnabled ? () {
                           if (authState?.isAuthenticated != true) {
                             context.push('/login');
@@ -185,9 +171,8 @@ class CompetitionDetailScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ),
             body: ListView(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(bottom: 100),
               children: [
                 Container(
                   height: 240,
@@ -299,13 +284,7 @@ class CompetitionDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _ActionRow(
-                        label: '리더보드',
-                        description: '이벤트별 / 종합 순위를 확인합니다.',
-                        onPressed: () =>
-                            context.push('/competitions/$competitionId/leaderboard'),
-                      ),
-                      const SizedBox(height: 16),
+
                       for (final reg in bundle.myRegistrations)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -331,29 +310,12 @@ class CompetitionDetailScreen extends ConsumerWidget {
                                 ),
                                 if (reg.paymentStatus == PaymentStatus.confirmed) ...[
                                   const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: FilledButton(
-                                          onPressed: () {
-                                            final event = _firstEventForReg(bundle.stages, reg);
-                                            if (event != null) {
-                                              context.push(
-                                                '/competitions/$competitionId/submit-score?eventId=${event.id}&registrationId=${reg.id}',
-                                              );
-                                            }
-                                          },
-                                          child: const Text('기록 제출하기'),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () => _showRegistrationDetail(context, reg),
-                                          child: const Text('신청 내역 보기'),
-                                        ),
-                                      ),
-                                    ],
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton(
+                                      onPressed: () => _showRegistrationDetail(context, reg),
+                                      child: const Text('신청 내역 보기'),
+                                    ),
                                   ),
                                 ],
                               ],
@@ -379,8 +341,6 @@ class CompetitionDetailScreen extends ConsumerWidget {
                                   _EventTile(
                                     competitionId: competitionId,
                                     event: event,
-                                    registration: _findRegistration(bundle.myRegistrations, event.eventType),
-                                    myScore: bundle.myScores[event.id],
                                   ),
                                   if (event != stageBundle.events.last)
                                     const Divider(height: 28),
@@ -404,6 +364,13 @@ class CompetitionDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 24),
+                      _ActionRow(
+                        label: '리더보드',
+                        description: '이벤트별 / 종합 순위를 확인합니다.',
+                        onPressed: () =>
+                            context.push('/competitions/$competitionId/leaderboard'),
+                      ),
                     ],
                   ),
                 ),
@@ -571,146 +538,54 @@ class _EventTile extends StatelessWidget {
   const _EventTile({
     required this.competitionId,
     required this.event,
-    required this.registration,
-    this.myScore,
   });
 
   final String competitionId;
   final CompetitionEvent event;
-  final Registration? registration;
-  final MyEventScore? myScore;
 
   @override
   Widget build(BuildContext context) {
-    final score = myScore;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return InkWell(
+      onTap: () => context.push('/competitions/$competitionId/events/${event.id}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${event.eventType} · ${event.gender} · ${event.scaleCategories.join('/')}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.78),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${event.wodType} · 마감 ${formatDateTime(event.submissionDeadline)}',
-                  ),
-                ],
+            Text(
+              event.name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
-            if (score != null)
-              _ScoreChip(score: score, event: event)
-            else if (registration != null &&
-                registration!.paymentStatus == PaymentStatus.confirmed)
-              OutlinedButton(
-                onPressed: () => context.push(
-                  '/competitions/$competitionId/submit-score?eventId=${event.id}&registrationId=${registration!.id}',
-                ),
-                child: const Text('기록 제출'),
+            const SizedBox(height: 6),
+            Text(
+              '${event.eventType} · ${event.gender} · ${event.scaleCategories.join('/')}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.78),
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${event.wodType} · 마감 ${formatDateTime(event.submissionDeadline)}',
+            ),
+            if (event.description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                event.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ],
         ),
-        if (event.description.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(event.description),
-        ],
-      ],
+      ),
     );
   }
 }
 
-class _ScoreChip extends StatelessWidget {
-  const _ScoreChip({required this.score, required this.event});
 
-  final MyEventScore score;
-  final CompetitionEvent event;
-
-  static const _statusColors = {
-    ScoreStatus.submitted:   (bg: Color(0xFFF1F5F9), fg: Color(0xFF64748B)),
-    ScoreStatus.underReview: (bg: Color(0xFFDBEAFE), fg: Color(0xFF1E40AF)),
-    ScoreStatus.approved:    (bg: Color(0xFFDCFCE7), fg: Color(0xFF166534)),
-    ScoreStatus.adjusted:    (bg: Color(0xFFFEF3C7), fg: Color(0xFF92400E)),
-    ScoreStatus.rejected:    (bg: Color(0xFFFEE2E2), fg: Color(0xFF991B1B)),
-  };
-
-  String get _scoreLabel {
-    if (score.isDnf) return 'DNF';
-    if (score.resultCustom != null && score.resultCustom!.isNotEmpty) {
-      return score.resultCustom!;
-    }
-    
-    switch (event.wodType) {
-      case 'FOR_TIME':
-        return formatTimeSeconds(score.resultTimeSeconds);
-      case 'AMRAP':
-        final rounds = score.resultRounds ?? 0;
-        final reps = score.resultReps ?? 0;
-        return '$rounds Rds + $reps Reps';
-      case 'EMOM':
-        return '${score.resultReps ?? 0} Reps';
-      case 'MAX_WEIGHT':
-        final weight = score.resultWeight ?? 0;
-        final unit = event.weightUnit ?? 'kg';
-        return '$weight $unit';
-      case 'CUSTOM':
-      default:
-        if (score.resultTimeSeconds != null) {
-          return formatTimeSeconds(score.resultTimeSeconds);
-        }
-        if (score.resultReps != null) {
-          return '${score.resultReps} Reps';
-        }
-        return '-';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = _statusColors[score.status]!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          _scoreLabel,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: colors.bg,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            score.status.label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.fg,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}

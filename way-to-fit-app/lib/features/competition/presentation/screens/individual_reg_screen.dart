@@ -50,17 +50,18 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
     final mutedText = theme.colorScheme.onSurface.withValues(alpha: 0.78);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('개인 신청')),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          child: FilledButton(
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: FilledButton(
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
             ),
+          ),
             onPressed: submitting || scaleCategory.isEmpty
                 ? null
                 : () async {
@@ -101,10 +102,9 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
             ),
           ),
         ),
-      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             if (widget.competition != null) ...[
               Card(
