@@ -13,6 +13,7 @@ class CompetitionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final mutedText = theme.colorScheme.onSurface.withValues(alpha: 0.78);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -75,9 +76,8 @@ class CompetitionCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               '${competition.participantsCount}명 참가중',
-                              style: const TextStyle(
+                              style: theme.textTheme.labelMedium?.copyWith(
                                 color: Colors.white,
-                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -103,7 +103,7 @@ class CompetitionCard extends StatelessWidget {
                   Text(
                     '대회 기간: ${formatDate(competition.startAt)} - ${formatDate(competition.endAt)}',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
+                      color: mutedText,
                     ),
                   ),
                   const SizedBox(height: 16),

@@ -237,6 +237,8 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 class _LoginPromptView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('내 프로필')),
       body: Center(
@@ -249,16 +251,16 @@ class _LoginPromptView extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 '로그인이 필요합니다',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 '프로필을 확인하려면 로그인하세요.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.white54),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                ),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -285,6 +287,8 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
         CircleAvatar(
@@ -304,17 +308,17 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               Text(
                 profile.name,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               if (userId == null) ...[
                 const SizedBox(height: 4),
                 Text(
                   '토큰에서 사용자 ID를 확인하지 못했습니다.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.orangeAccent),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.orangeAccent,
+                  ),
                 ),
               ],
             ],
@@ -333,16 +337,23 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w500),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.64),
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ],
     );
@@ -356,6 +367,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (status == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
 
     final isApproved = status == 'APPROVED';
     final isRejected = status == 'REJECTED';
@@ -376,7 +388,10 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.bold),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -389,7 +404,8 @@ class _RankBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rank == null) return const SizedBox.shrink();
-    
+    final theme = Theme.of(context);
+
     final label = switch (rank) {
       1 => '🥇',
       2 => '🥈',
@@ -405,7 +421,10 @@ class _RankBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -418,14 +437,16 @@ class _HistorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '대회 이력',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
         ),
         const SizedBox(height: 12),
         if (history.isEmpty)
@@ -440,14 +461,15 @@ class _HistorySection extends StatelessWidget {
               child: ExpansionTile(
                 title: Text(
                   item.name,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 subtitle: Text(
                   '${formatDate(item.endAt)} · ${item.registrationType.label} · ${item.scaleCategory} · 최종 ${item.overallRank ?? '-'}위',
-                  style: const TextStyle(fontSize: 12, color: Colors.white60),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.64),
+                  ),
                 ),
                 children: [
                   if (item.eventScores.isNotEmpty)
@@ -473,7 +495,9 @@ class _HistorySection extends StatelessWidget {
                                     children: [
                                       Text(
                                         score.resultCustom ?? formatTimeSeconds(score.resultTimeSeconds),
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       _StatusBadge(status: score.resultStatus),
@@ -493,7 +517,7 @@ class _HistorySection extends StatelessWidget {
                   else
                     const Padding(
                       padding: EdgeInsets.all(18),
-                      child: Text('제출된 기록이 없습니다.', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                      child: Text('제출된 기록이 없습니다.'),
                     ),
                 ],
               ),

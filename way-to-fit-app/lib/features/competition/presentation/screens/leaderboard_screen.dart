@@ -42,6 +42,8 @@ class _ScoreChipForLeaderboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -50,7 +52,10 @@ class _ScoreChipForLeaderboard extends StatelessWidget {
       ),
       child: Text(
         _scoreLabel,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -236,6 +241,7 @@ class _OverallLeaderboardList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final mutedOnPrimary = Colors.white.withValues(alpha: 0.82);
     final value = ref.watch(overallLeaderboardProvider(query));
 
     return AsyncValueView(
@@ -319,9 +325,12 @@ class _OverallLeaderboardList extends ConsumerWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '나의 종합 순위',
-                              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: mutedOnPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -355,6 +364,7 @@ class _EventLeaderboardList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final mutedOnPrimary = Colors.white.withValues(alpha: 0.82);
     final value = ref.watch(eventLeaderboardProvider(query));
 
     return AsyncValueView(
@@ -447,9 +457,12 @@ class _EventLeaderboardList extends ConsumerWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '나의 이벤트 순위',
-                              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: mutedOnPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(

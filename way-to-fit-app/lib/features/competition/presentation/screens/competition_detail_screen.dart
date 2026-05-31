@@ -104,6 +104,8 @@ class CompetitionDetailScreen extends ConsumerWidget {
         onRetry: () =>
             ref.invalidate(competitionDetailProvider(competitionId)),
         builder: (bundle) {
+          final theme = Theme.of(context);
+          final mutedText = theme.colorScheme.onSurface.withValues(alpha: 0.78);
           final showIndividualReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.individual);
           final showTeamReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.team);
           final canRegister = showIndividualReg || showTeamReg;
@@ -197,16 +199,18 @@ class CompetitionDetailScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   '${formatDate(bundle.competition.startAt)} - ${formatDate(bundle.competition.endAt)}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.82),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Text(
                               bundle.competition.name,
-                              style: const TextStyle(
+                              style: theme.textTheme.headlineSmall?.copyWith(
                                 color: Colors.white,
-                                fontSize: 24,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -235,9 +239,16 @@ class CompetitionDetailScreen extends ConsumerWidget {
                             const SizedBox(height: 8),
                             Text(
                               '${bundle.competition.bankName} ${bundle.competition.accountNumber}',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            Text('예금주: ${bundle.competition.accountHolder}', style: const TextStyle(color: Colors.white70)),
+                            Text(
+                              '예금주: ${bundle.competition.accountHolder}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: mutedText,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -451,7 +462,9 @@ void _showRegistrationDetail(BuildContext context, Registration reg) {
             Text(
               '팀원',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white54,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.64),
               ),
             ),
             const SizedBox(height: 4),
@@ -484,11 +497,20 @@ class _DetailRow extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white54,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.64),
               ),
             ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );
@@ -532,7 +554,11 @@ class _EventTile extends StatelessWidget {
                     '${event.eventType} · ${event.gender} · ${event.scaleCategories.join('/')}',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                    ).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.78),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -615,7 +641,9 @@ class _ScoreChip extends StatelessWidget {
       children: [
         Text(
           _scoreLabel,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 4),
         Container(
@@ -626,8 +654,7 @@ class _ScoreChip extends StatelessWidget {
           ),
           child: Text(
             score.status.label,
-            style: TextStyle(
-              fontSize: 11,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: colors.fg,
             ),

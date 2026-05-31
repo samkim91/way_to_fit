@@ -5,6 +5,7 @@ class AppTheme {
   static const _surface = Color(0xFF232A36);
   static const _background = Color(0xFF171C24);
   static const _outline = Color(0xFF394150);
+  static const _fontFamily = 'NotoSansKR';
 
   static ThemeData dark() {
     final base = ThemeData.dark(useMaterial3: true);
@@ -21,11 +22,7 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       scaffoldBackgroundColor: _background,
-      textTheme: base.textTheme.apply(
-        fontFamily: 'NotoSansKR',
-        bodyColor: scheme.onSurface,
-        displayColor: scheme.onSurface,
-      ),
+      textTheme: _buildTextTheme(base.textTheme, scheme),
       chipTheme: base.chipTheme.copyWith(
         side: const BorderSide(color: _outline),
         selectedColor: _primary.withValues(alpha: 0.16),
@@ -69,7 +66,71 @@ class AppTheme {
 
     return base.copyWith(
       colorScheme: scheme,
-      textTheme: base.textTheme.apply(fontFamily: 'NotoSansKR'),
+      textTheme: _buildTextTheme(base.textTheme, scheme),
+    );
+  }
+
+  static TextTheme _buildTextTheme(TextTheme base, ColorScheme scheme) {
+    final applied = base.apply(
+      fontFamily: _fontFamily,
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
+    final strong = scheme.onSurface;
+    final muted = scheme.onSurface.withValues(alpha: 0.78);
+    final subtle = scheme.onSurface.withValues(alpha: 0.64);
+
+    return applied.copyWith(
+      bodySmall: applied.bodySmall?.copyWith(
+        fontSize: 13,
+        height: 1.4,
+        color: muted,
+      ),
+      bodyMedium: applied.bodyMedium?.copyWith(
+        fontSize: 15,
+        height: 1.5,
+        color: strong,
+      ),
+      bodyLarge: applied.bodyLarge?.copyWith(
+        fontSize: 16,
+        height: 1.5,
+        color: strong,
+      ),
+      labelSmall: applied.labelSmall?.copyWith(
+        fontSize: 12,
+        height: 1.3,
+        color: subtle,
+      ),
+      labelMedium: applied.labelMedium?.copyWith(
+        fontSize: 13,
+        height: 1.35,
+        color: muted,
+      ),
+      titleSmall: applied.titleSmall?.copyWith(
+        fontSize: 14,
+        height: 1.35,
+        color: strong,
+      ),
+      titleMedium: applied.titleMedium?.copyWith(
+        fontSize: 16,
+        height: 1.35,
+        color: strong,
+      ),
+      titleLarge: applied.titleLarge?.copyWith(
+        fontSize: 20,
+        height: 1.25,
+        color: strong,
+      ),
+      headlineSmall: applied.headlineSmall?.copyWith(
+        fontSize: 24,
+        height: 1.2,
+        color: strong,
+      ),
+      headlineLarge: applied.headlineLarge?.copyWith(
+        fontSize: 32,
+        height: 1.15,
+        color: strong,
+      ),
     );
   }
 }

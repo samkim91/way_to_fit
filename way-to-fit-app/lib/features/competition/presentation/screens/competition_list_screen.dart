@@ -45,9 +45,11 @@ class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
                 children: [
                   Text(
                     '참가자와 관중을 위한 공개 대회 목록',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.78),
+                    ),
                   ),
                   const SizedBox(height: 18),
                   Wrap(

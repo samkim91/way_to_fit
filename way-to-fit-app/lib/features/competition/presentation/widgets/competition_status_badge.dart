@@ -9,6 +9,7 @@ class CompetitionStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final color = switch (status) {
       CompetitionStatus.registrationOpen => const Color(0xFF2563EB),
       CompetitionStatus.inProgress => const Color(0xFFF97316),
@@ -26,9 +27,8 @@ class CompetitionStatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.label,
-        style: TextStyle(
+        style: theme.textTheme.labelMedium?.copyWith(
           color: color,
-          fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
       ),

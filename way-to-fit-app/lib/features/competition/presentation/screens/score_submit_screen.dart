@@ -218,13 +218,18 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                                   ),
                                   child: Text(
                                     event.wodType,
-                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   '마감: ${formatDateTime(event.submissionDeadline)}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.82),
+                                  ),
                                 ),
                               ],
                             ),
@@ -247,7 +252,7 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                               children: [
                                 const Text(
                                   'WOD 설명',
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white70),
+                                  style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
@@ -282,7 +287,6 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                                   style: TextStyle(
                                     color: theme.colorScheme.primary,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
                                   ),
                                 ),
                               ),

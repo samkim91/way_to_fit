@@ -15,6 +15,8 @@ class AthleteProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final value = ref.watch(athleteProfileProvider(userId));
     final theme = Theme.of(context);
+    final mutedText = theme.colorScheme.onSurface.withValues(alpha: 0.78);
+    final subtleText = theme.colorScheme.onSurface.withValues(alpha: 0.64);
 
     return Scaffold(
       appBar: AppBar(title: const Text('선수 프로필')),
@@ -65,7 +67,9 @@ class AthleteProfileScreen extends ConsumerWidget {
                         bundle.profile.biography?.isNotEmpty == true
                             ? bundle.profile.biography!
                             : '등록된 선수 소개가 없습니다.',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: mutedText,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -109,14 +113,15 @@ class AthleteProfileScreen extends ConsumerWidget {
                       child: ExpansionTile(
                         title: Text(
                           item.name,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         subtitle: Text(
                           '${formatDate(item.endAt)} · ${item.registrationType.label} · ${item.scaleCategory} · 최종 ${item.overallRank ?? '-'}위',
-                          style: const TextStyle(fontSize: 12, color: Colors.white60),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: subtleText,
+                          ),
                         ),
                         children: [
                           if (item.eventScores.isNotEmpty)
@@ -142,7 +147,9 @@ class AthleteProfileScreen extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 score.resultCustom ?? formatTimeSeconds(score.resultTimeSeconds),
-                                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                                style: theme.textTheme.bodyMedium?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
                                               ),
                                               const SizedBox(width: 8),
                                               _StatusBadge(status: score.resultStatus),
@@ -162,7 +169,7 @@ class AthleteProfileScreen extends ConsumerWidget {
                           else
                             const Padding(
                               padding: EdgeInsets.all(18),
-                              child: Text('제출된 기록이 없습니다.', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                              child: Text('제출된 기록이 없습니다.'),
                             ),
                         ],
                       ),
@@ -186,16 +193,23 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w500),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.64),
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ],
     );
@@ -209,6 +223,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (status == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
 
     final isApproved = status == 'APPROVED';
     final isRejected = status == 'REJECTED';
@@ -229,7 +244,10 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.bold),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -242,7 +260,8 @@ class _RankBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rank == null) return const SizedBox.shrink();
-    
+    final theme = Theme.of(context);
+
     final label = switch (rank) {
       1 => '🥇',
       2 => '🥈',
@@ -258,7 +277,10 @@ class _RankBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

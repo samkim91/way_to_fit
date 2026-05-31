@@ -46,6 +46,9 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = widget.scaleCategories;
+    final theme = Theme.of(context);
+    final mutedText = theme.colorScheme.onSurface.withValues(alpha: 0.78);
+
     return Scaffold(
       appBar: AppBar(title: const Text('개인 신청')),
       body: SafeArea(
@@ -61,7 +64,7 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                     children: [
                       Text(
                         '참가비 및 계좌 정보',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -69,10 +72,17 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('참가비', style: TextStyle(color: Colors.white70)),
+                          Text(
+                            '참가비',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: mutedText,
+                            ),
+                          ),
                           Text(
                             formatCurrency(widget.competition!.entryFee),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),
@@ -80,10 +90,17 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('입금 계좌', style: TextStyle(color: Colors.white70)),
+                          Text(
+                            '입금 계좌',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: mutedText,
+                            ),
+                          ),
                           Text(
                             '${widget.competition!.bankName} ${widget.competition!.accountNumber}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),
@@ -91,10 +108,17 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('예금주', style: TextStyle(color: Colors.white70)),
+                          Text(
+                            '예금주',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: mutedText,
+                            ),
+                          ),
                           Text(
                             widget.competition!.accountHolder,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),
@@ -105,14 +129,17 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                           color: Colors.blue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.info_outline, size: 16, color: Colors.blue),
-                            SizedBox(width: 8),
+                            const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '입금 완료 후 주최자가 확인하여 승인 처리합니다.',
-                                style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.w600),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
