@@ -8,9 +8,14 @@ import '../../data/competition_repository.dart';
 import '../../domain/models.dart';
 
 class TeamRegScreen extends ConsumerStatefulWidget {
-  const TeamRegScreen({super.key, required this.competitionId});
+  const TeamRegScreen({
+    super.key,
+    required this.competitionId,
+    required this.scaleCategories,
+  });
 
   final String competitionId;
+  final List<String> scaleCategories;
 
   @override
   ConsumerState<TeamRegScreen> createState() => _TeamRegScreenState();
@@ -22,7 +27,7 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
   final _teamNameController = TextEditingController();
   final _searchController = TextEditingController();
   final _paymentNoteController = TextEditingController();
-  String _scaleCategory = 'RXD';
+  late String _scaleCategory;
   bool _submitting = false;
 
   List<AthleteSearchResult> _searchResults = [];
@@ -32,6 +37,14 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
   final Map<String, String> _pendingGender = {};
 
   Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleCategory = widget.scaleCategories.isNotEmpty
+        ? widget.scaleCategories.first
+        : '';
+  }
 
   @override
   void dispose() {
@@ -93,6 +106,12 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('팀명을 입력해주세요.')));
+      return;
+    }
+    if (_scaleCategory.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('스케일 카테고리를 선택해주세요.')));
       return;
     }
     if (_members.isEmpty) {
@@ -169,15 +188,15 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
               decoration: const InputDecoration(labelText: '팀명'),
             ),
             const SizedBox(height: 16),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'RXD', label: Text('RXD')),
-                ButtonSegment(value: 'SCALED', label: Text('SCALED')),
-              ],
-              selected: {_scaleCategory},
-              onSelectionChanged: (value) =>
-                  setState(() => _scaleCategory = value.first),
-            ),
+            if (widget.scaleCategories.isNotEmpty)
+              SegmentedButton<String>(
+                segments: widget.scaleCategories
+                    .map((cat) => ButtonSegment(value: cat, label: Text(cat)))
+                    .toList(),
+                selected: {_scaleCategory},
+                onSelectionChanged: (value) =>
+                    setState(() => _scaleCategory = value.first),
+              ),
             const SizedBox(height: 24),
             Text(
               '팀원 추가',
