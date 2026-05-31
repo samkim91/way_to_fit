@@ -211,6 +211,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
         registrationId: dto.registrationId,
         status: ScoreStatus.fromJson(dto.status),
         isDnf: dto.resultStatus == 'DNF',
+        videoUrl: dto.videoUrl,
         resultTimeSeconds: dto.resultTimeSeconds,
         resultRounds: dto.resultRounds,
         resultReps: dto.resultReps,

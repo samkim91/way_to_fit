@@ -346,6 +346,7 @@ class MyEventScore {
     required this.registrationId,
     required this.status,
     required this.isDnf,
+    this.videoUrl,
     this.resultTimeSeconds,
     this.resultRounds,
     this.resultReps,
@@ -358,6 +359,7 @@ class MyEventScore {
   final String registrationId;
   final ScoreStatus status;
   final bool isDnf;
+  final String? videoUrl;
   final int? resultTimeSeconds;
   final int? resultRounds;
   final int? resultReps;

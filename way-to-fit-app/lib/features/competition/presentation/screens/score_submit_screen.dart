@@ -37,6 +37,7 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
 
   bool _dnf = false;
   bool _submitting = false;
+  bool _isInitialized = false;
 
   bool _isValidVideoUrl(String value) {
     final uri = Uri.tryParse(value.trim());
@@ -153,6 +154,58 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
     final detailValue = ref.watch(
       competitionDetailProvider(widget.competitionId),
     );
+    
+    if (!_isInitialized && detailValue.hasValue) {
+      _isInitialized = true;
+      final bundle = detailValue.value!;
+      final myScore = bundle.myScores[widget.eventId];
+      if (myScore != null) {
+        CompetitionEvent? event;
+        for (final stageBundle in bundle.stages) {
+          for (final ev in stageBundle.events) {
+            if (ev.id == widget.eventId) {
+              event = ev;
+              break;
+            }
+          }
+          if (event != null) break;
+        }
+        if (event != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _dnf = myScore.isDnf;
+              _videoUrlController.text = myScore.videoUrl ?? '';
+              if (!myScore.isDnf) {
+                switch (event!.wodType) {
+                  case 'FOR_TIME':
+                    if (myScore.resultTimeSeconds != null) {
+                      _minutesController.text = (myScore.resultTimeSeconds! ~/ 60).toString();
+                      _secondsController.text = (myScore.resultTimeSeconds! % 60).toString();
+                    }
+                    break;
+                  case 'AMRAP':
+                    if (myScore.resultRounds != null) _roundsController.text = myScore.resultRounds.toString();
+                    if (myScore.resultReps != null) _repsController.text = myScore.resultReps.toString();
+                    break;
+                  case 'EMOM':
+                    if (myScore.resultReps != null) _repsController.text = myScore.resultReps.toString();
+                    break;
+                  case 'MAX_WEIGHT':
+                    if (myScore.resultWeight != null) _weightController.text = myScore.resultWeight.toString();
+                    break;
+                  case 'CUSTOM':
+                  default:
+                    _customController.text = myScore.resultCustom ?? '';
+                    break;
+                }
+              }
+            });
+          });
+        }
+      }
+    }
+
     final canSubmit =
         widget.eventId.isNotEmpty && widget.registrationId.isNotEmpty;
 
