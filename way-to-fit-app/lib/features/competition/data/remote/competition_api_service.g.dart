@@ -279,9 +279,7 @@ class _CompetitionApiService implements CompetitionApiService {
     try {
       _value = ApiResponseDto<ScoreResponseDto>.fromJson(
         _result.data!,
-        (json) => json == null
-            ? throw ArgumentError.notNull('data')
-            : ScoreResponseDto.fromJson(json as Map<String, dynamic>),
+        (json) => ScoreResponseDto.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);

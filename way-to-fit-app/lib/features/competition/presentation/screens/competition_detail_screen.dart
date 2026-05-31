@@ -37,196 +37,322 @@ class CompetitionDetailScreen extends ConsumerWidget {
     return null;
   }
 
+  void _showRegistrationTypeSelector(BuildContext context, Competition competition) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '참가 방식 선택',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.person, color: Colors.blue),
+              title: const Text('개인전 신청하기', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('혼자 대회에 참여합니다.'),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push(
+                  '/competitions/${competition.id}/register/individual',
+                  extra: competition,
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.people, color: Colors.green),
+              title: const Text('팀전 신청하기', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('팀원들과 함께 대회에 참여합니다.'),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push(
+                  '/competitions/${competition.id}/register/team',
+                  extra: competition,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailValue = ref.watch(competitionDetailProvider(competitionId));
     final authState = ref.watch(authControllerProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('대회 상세')),
-      body: SafeArea(
-        child: AsyncValueView(
-          value: detailValue,
-          onRetry: () =>
-              ref.invalidate(competitionDetailProvider(competitionId)),
-          builder: (bundle) {
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-              children: [
-                Text(
-                  bundle.competition.name,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    CompetitionStatusBadge(status: bundle.competition.status),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${formatDate(bundle.competition.startAt)} - ${formatDate(bundle.competition.endAt)}',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _InfoCard(
-                  title: '참가비 및 계좌',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        formatCurrency(bundle.competition.entryFee),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
+      appBar: AppBar(
+        title: const Text('대회 상세'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      extendBodyBehindAppBar: true,
+      body: AsyncValueView(
+        value: detailValue,
+        onRetry: () =>
+            ref.invalidate(competitionDetailProvider(competitionId)),
+        builder: (bundle) {
+          final showIndividualReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.individual);
+          final showTeamReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.team);
+          final canRegister = showIndividualReg || showTeamReg;
+
+          return Scaffold(
+            bottomNavigationBar: canRegister
+                ? SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (authState?.isAuthenticated != true) {
+                            context.push('/login');
+                            return;
+                          }
+                          if (showIndividualReg && showTeamReg) {
+                            _showRegistrationTypeSelector(context, bundle.competition);
+                          } else if (showIndividualReg) {
+                            context.push(
+                              '/competitions/$competitionId/register/individual',
+                              extra: bundle.competition,
+                            );
+                          } else {
+                            context.push(
+                              '/competitions/$competitionId/register/team',
+                              extra: bundle.competition,
+                            );
+                          }
+                        },
+                        child: Text(
+                          authState?.isAuthenticated == true ? '대회 신청하기' : '로그인 후 신청하기',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${bundle.competition.bankName} ${bundle.competition.accountNumber}',
-                      ),
-                      Text('예금주: ${bundle.competition.accountHolder}'),
-                    ],
+                    ),
+                  )
+                : null,
+            body: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                Container(
+                  height: 240,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
+                    ),
+                    image: bundle.competition.bannerImageUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(bundle.competition.bannerImageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 16),
-                _InfoCard(
-                  title: '안내',
-                  child: Text(
-                    bundle.competition.description.isEmpty
-                        ? '대회 설명이 아직 등록되지 않았습니다.'
-                        : bundle.competition.description,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _ActionRow(
-                  label: '리더보드',
-                  description: '이벤트별 / 종합 순위를 확인합니다.',
-                  onPressed: () =>
-                      context.push('/competitions/$competitionId/leaderboard'),
-                ),
-                const SizedBox(height: 16),
-                for (final reg in bundle.myRegistrations)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _InfoCard(
-                      title: '나의 참가 상태 · ${reg.registrationType.label}',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${reg.scaleCategory}${reg.teamName != null ? ' · ${reg.teamName}' : ''}'),
-                              Text(
-                                reg.paymentStatus.label,
-                                style: TextStyle(
-                                  color: reg.paymentStatus == PaymentStatus.confirmed
-                                      ? const Color(0xFF4CAF50)
-                                      : const Color(0xFFFFC107),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.6),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.8),
                             ],
                           ),
-                          if (reg.paymentStatus == PaymentStatus.confirmed) ...[
-                            const SizedBox(height: 12),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 20,
+                        left: 20,
+                        right: 20,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Row(
                               children: [
-                                Expanded(
-                                  child: FilledButton(
-                                    onPressed: () {
-                                      final event = _firstEventForReg(bundle.stages, reg);
-                                      if (event != null) {
-                                        context.push(
-                                          '/competitions/$competitionId/submit-score?eventId=${event.id}&registrationId=${reg.id}',
-                                        );
-                                      }
-                                    },
-                                    child: const Text('기록 제출하기'),
-                                  ),
-                                ),
+                                CompetitionStatusBadge(status: bundle.competition.status),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () => _showRegistrationDetail(context, reg),
-                                    child: const Text('신청 내역 보기'),
-                                  ),
+                                Text(
+                                  '${formatDate(bundle.competition.startAt)} - ${formatDate(bundle.competition.endAt)}',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 8),
+                            Text(
+                              bundle.competition.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                if (!bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.individual))
-                  _ActionRow(
-                    label: authState?.isAuthenticated == true
-                        ? '개인 신청하기'
-                        : '로그인 후 신청하기',
-                    description: '개인전으로 참가 신청합니다.',
-                    onPressed: () => authState?.isAuthenticated == true
-                        ? context.push(
-                            '/competitions/$competitionId/register/individual',
-                            extra: bundle.competition.scaleCategories,
-                          )
-                        : context.push('/login'),
-                  ),
-                const SizedBox(height: 16),
-                if (authState?.isAuthenticated == true &&
-                    !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.team))
-                  _ActionRow(
-                    label: '팀 신청하기',
-                    description: '팀원을 검색하여 팀으로 참가 신청합니다.',
-                    onPressed: () => context.push(
-                      '/competitions/$competitionId/register/team',
-                      extra: bundle.competition.scaleCategories,
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                Text(
-                  'Stage & Event',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
-                const SizedBox(height: 12),
-                for (final stageBundle in bundle.stages) ...[
-                  _InfoCard(
-                    title:
-                        '${stageBundle.stage.name} · ${stageBundle.stage.stageFormat}',
-                    child: Column(
-                      children: [
-                        for (final event in stageBundle.events) ...[
-                          _EventTile(
-                            competitionId: competitionId,
-                            event: event,
-                            registration: _findRegistration(bundle.myRegistrations, event.eventType),
-                            myScore: bundle.myScores[event.id],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _InfoCard(
+                        title: '참가비 및 계좌',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              formatCurrency(bundle.competition.entryFee),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${bundle.competition.bankName} ${bundle.competition.accountNumber}',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            Text('예금주: ${bundle.competition.accountHolder}', style: const TextStyle(color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _InfoCard(
+                        title: '안내',
+                        child: Text(
+                          bundle.competition.description.isEmpty
+                              ? '대회 설명이 아직 등록되지 않았습니다.'
+                              : bundle.competition.description,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ActionRow(
+                        label: '리더보드',
+                        description: '이벤트별 / 종합 순위를 확인합니다.',
+                        onPressed: () =>
+                            context.push('/competitions/$competitionId/leaderboard'),
+                      ),
+                      const SizedBox(height: 16),
+                      for (final reg in bundle.myRegistrations)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _InfoCard(
+                            title: '나의 참가 상태 · ${reg.registrationType.label}',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('${reg.scaleCategory}${reg.teamName != null ? ' · ${reg.teamName}' : ''}'),
+                                    Text(
+                                      reg.paymentStatus.label,
+                                      style: TextStyle(
+                                        color: reg.paymentStatus == PaymentStatus.confirmed
+                                            ? const Color(0xFF4CAF50)
+                                            : const Color(0xFFFFC107),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (reg.paymentStatus == PaymentStatus.confirmed) ...[
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: FilledButton(
+                                          onPressed: () {
+                                            final event = _firstEventForReg(bundle.stages, reg);
+                                            if (event != null) {
+                                              context.push(
+                                                '/competitions/$competitionId/submit-score?eventId=${event.id}&registrationId=${reg.id}',
+                                              );
+                                            }
+                                          },
+                                          child: const Text('기록 제출하기'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () => _showRegistrationDetail(context, reg),
+                                          child: const Text('신청 내역 보기'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                          if (event != stageBundle.events.last)
-                            const Divider(height: 28),
-                        ],
+                        ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Stage & Event',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 12),
+                      for (final stageBundle in bundle.stages) ...[
+                        _InfoCard(
+                          title:
+                              '${stageBundle.stage.name} · ${stageBundle.stage.stageFormat}',
+                          child: Column(
+                            children: [
+                              for (final event in stageBundle.events) ...[
+                                _EventTile(
+                                  competitionId: competitionId,
+                                  event: event,
+                                  registration: _findRegistration(bundle.myRegistrations, event.eventType),
+                                  myScore: bundle.myScores[event.id],
+                                ),
+                                if (event != stageBundle.events.last)
+                                  const Divider(height: 28),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                       ],
-                    ),
+                      if (bundle.stages.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Text('공개된 스테이지와 이벤트가 아직 없습니다.'),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                ],
-                if (bundle.stages.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Text('공개된 스테이지와 이벤트가 아직 없습니다.'),
-                  ),
+                ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -416,7 +542,7 @@ class _EventTile extends StatelessWidget {
               ),
             ),
             if (score != null)
-              _ScoreChip(score: score)
+              _ScoreChip(score: score, event: event)
             else if (registration != null &&
                 registration!.paymentStatus == PaymentStatus.confirmed)
               OutlinedButton(
@@ -437,9 +563,10 @@ class _EventTile extends StatelessWidget {
 }
 
 class _ScoreChip extends StatelessWidget {
-  const _ScoreChip({required this.score});
+  const _ScoreChip({required this.score, required this.event});
 
   final MyEventScore score;
+  final CompetitionEvent event;
 
   static const _statusColors = {
     ScoreStatus.submitted:   (bg: Color(0xFFF1F5F9), fg: Color(0xFF64748B)),
@@ -451,8 +578,33 @@ class _ScoreChip extends StatelessWidget {
 
   String get _scoreLabel {
     if (score.isDnf) return 'DNF';
-    if (score.resultCustom != null) return score.resultCustom!;
-    return formatTimeSeconds(score.resultTimeSeconds);
+    if (score.resultCustom != null && score.resultCustom!.isNotEmpty) {
+      return score.resultCustom!;
+    }
+    
+    switch (event.wodType) {
+      case 'FOR_TIME':
+        return formatTimeSeconds(score.resultTimeSeconds);
+      case 'AMRAP':
+        final rounds = score.resultRounds ?? 0;
+        final reps = score.resultReps ?? 0;
+        return '$rounds Rds + $reps Reps';
+      case 'EMOM':
+        return '${score.resultReps ?? 0} Reps';
+      case 'MAX_WEIGHT':
+        final weight = score.resultWeight ?? 0;
+        final unit = event.weightUnit ?? 'kg';
+        return '$weight $unit';
+      case 'CUSTOM':
+      default:
+        if (score.resultTimeSeconds != null) {
+          return formatTimeSeconds(score.resultTimeSeconds);
+        }
+        if (score.resultReps != null) {
+          return '${score.resultReps} Reps';
+        }
+        return '-';
+    }
   }
 
   @override

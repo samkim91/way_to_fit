@@ -151,12 +151,46 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
               _profileImageUrlController.text = profile.profileImageUrl ?? '';
             }
 
+            final history = bundle.history;
+            final totalComps = history.length;
+
+            int totalScores = 0;
+            int? bestRank;
+            for (final h in history) {
+              totalScores += h.eventScores.length;
+              if (h.overallRank != null) {
+                if (bestRank == null || h.overallRank! < bestRank) {
+                  bestRank = h.overallRank;
+                }
+              }
+            }
+
             return RefreshIndicator(
               onRefresh: () async => ref.refresh(myProfileProvider.future),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
                 children: [
                   _ProfileHeader(profile: profile, userId: userId),
+                  const SizedBox(height: 20),
+                  // 통계 카드 추가
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _StatItem(label: '대회 참가', value: '$totalComps회'),
+                          Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.15)),
+                          _StatItem(label: '기록 제출', value: '$totalScores회'),
+                          Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.15)),
+                          _StatItem(
+                            label: '최고 순위',
+                            value: bestRank != null ? '$bestRank위' : '-',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   TextField(
                     controller: _profileImageUrlController,
@@ -189,7 +223,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                     label: Text(_saving ? '저장 중...' : '저장'),
                   ),
                   const SizedBox(height: 28),
-                  _HistorySection(history: bundle.history),
+                  _HistorySection(history: history),
                 ],
               ),
             );
@@ -291,6 +325,92 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
+class _StatItem extends StatelessWidget {
+  const _StatItem({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.status});
+  final String? status;
+
+  @override
+  Widget build(BuildContext context) {
+    if (status == null) return const SizedBox.shrink();
+
+    final isApproved = status == 'APPROVED';
+    final isRejected = status == 'REJECTED';
+
+    final bg = isApproved
+        ? const Color(0xFFDCFCE7)
+        : (isRejected ? const Color(0xFFFEE2E2) : const Color(0xFFF1F5F9));
+    final fg = isApproved
+        ? const Color(0xFF166534)
+        : (isRejected ? const Color(0xFF991B1B) : const Color(0xFF64748B));
+    final label = isApproved ? '승인' : (isRejected ? '거절' : '검토중');
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+class _RankBadge extends StatelessWidget {
+  const _RankBadge({required this.rank});
+  final int? rank;
+
+  @override
+  Widget build(BuildContext context) {
+    if (rank == null) return const SizedBox.shrink();
+    
+    final label = switch (rank) {
+      1 => '🥇',
+      2 => '🥈',
+      3 => '🥉',
+      _ => '$rank위',
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: const BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.all(Radius.circular(6)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+      ),
+    );
+  }
+}
+
 class _HistorySection extends StatelessWidget {
   const _HistorySection({required this.history});
 
@@ -309,34 +429,73 @@ class _HistorySection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (history.isEmpty)
-          const Text('공개된 대회 이력이 없습니다.')
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: Text('공개된 대회 이력이 없습니다.')),
+          )
         else
           for (final item in history) ...[
             Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${formatDate(item.endAt)} · ${item.registrationType.label} · ${item.scaleCategory}',
-                    ),
-                    if (item.overallRank != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        '최종 ${item.overallRank}위 · ${item.totalPoints ?? '-'}pt',
-                      ),
-                    ],
-                  ],
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                title: Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
+                subtitle: Text(
+                  '${formatDate(item.endAt)} · ${item.registrationType.label} · ${item.scaleCategory} · 최종 ${item.overallRank ?? '-'}위',
+                  style: const TextStyle(fontSize: 12, color: Colors.white60),
+                ),
+                children: [
+                  if (item.eventScores.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                      child: Column(
+                        children: [
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          for (final score in item.eventScores) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      score.eventName,
+                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        score.resultCustom ?? formatTimeSeconds(score.resultTimeSeconds),
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _StatusBadge(status: score.resultStatus),
+                                      const SizedBox(width: 8),
+                                      _RankBadge(rank: score.rank),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (score != item.eventScores.last)
+                              Divider(height: 8, color: Colors.white.withValues(alpha: 0.05)),
+                          ],
+                        ],
+                      ),
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.all(18),
+                      child: Text('제출된 기록이 없습니다.', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 12),

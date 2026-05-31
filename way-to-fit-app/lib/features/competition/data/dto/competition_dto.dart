@@ -22,6 +22,7 @@ class CompetitionResponseDto {
     required this.bannerImageUrl,
     required this.createdAt,
     required this.scaleCategories,
+    @JsonKey(defaultValue: 0) required this.participantsCount,
   });
 
   final String id;
@@ -39,6 +40,7 @@ class CompetitionResponseDto {
   final String? bannerImageUrl;
   final DateTime? createdAt;
   final List<String> scaleCategories;
+  final int participantsCount;
 
   factory CompetitionResponseDto.fromJson(Map<String, dynamic> json) =>
       _$CompetitionResponseDtoFromJson(json);
@@ -60,6 +62,7 @@ class CompetitionResponseDto {
     entryFee: entryFee,
     bannerImageUrl: bannerImageUrl,
     scaleCategories: scaleCategories,
+    participantsCount: participantsCount,
   );
 }
 

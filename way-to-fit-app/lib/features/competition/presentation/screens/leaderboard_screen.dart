@@ -16,9 +16,53 @@ class LeaderboardScreen extends ConsumerStatefulWidget {
   ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
+class _ScoreChipForLeaderboard extends StatelessWidget {
+  const _ScoreChipForLeaderboard({required this.entry});
+
+  final LeaderboardEntry entry;
+
+  String get _scoreLabel {
+    if (entry.resultStatus == 'DNF') return 'DNF';
+    if (entry.resultCustom != null && entry.resultCustom!.isNotEmpty) {
+      return entry.resultCustom!;
+    }
+    if (entry.resultTimeSeconds != null) {
+      return formatTimeSeconds(entry.resultTimeSeconds);
+    }
+    if (entry.resultRounds != null || entry.resultReps != null) {
+      final rounds = entry.resultRounds ?? 0;
+      final reps = entry.resultReps ?? 0;
+      return rounds > 0 ? '$rounds Rds + $reps Reps' : '$reps Reps';
+    }
+    if (entry.resultWeight != null) {
+      return '${entry.resultWeight} kg';
+    }
+    return '-';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        _scoreLabel,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
+}
+
 class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   RegistrationType registrationType = RegistrationType.individual;
   int selectedTab = 0;
+  
+  // 필터 상태
+  String? genderFilter;
+  String? scaleFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +93,25 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 ? 0
                 : selectedTab;
             final selectedEvent = eventTabs[normalizedIndex];
+            
             final query = LeaderboardQuery(
               competitionId: widget.competitionId,
               stageId: stage.stage.id,
               eventId: selectedEvent?.id,
               registrationType: registrationType,
+              gender: genderFilter,
+              scaleCategory: scaleFilter,
             );
+
+            // 로그인한 유저의 이 참가 유형에 맞는 registrationId 찾기
+            Registration? myReg;
+            for (final r in bundle.myRegistrations) {
+              if (r.registrationType == registrationType) {
+                myReg = r;
+                break;
+              }
+            }
+            final myRegId = myReg?.id;
 
             return Column(
               children: [
@@ -79,6 +136,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                           setState(() {
                             registrationType = value.first;
                             selectedTab = 0;
+                            genderFilter = null;
+                            scaleFilter = null;
                           });
                         },
                       ),
@@ -104,14 +163,58 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 14),
+                      // 성별 및 스케일 필터 영역
+                      Row(
+                        children: [
+                          ChoiceChip(
+                            label: const Text('전체 성별'),
+                            selected: genderFilter == null,
+                            onSelected: (_) => setState(() => genderFilter = null),
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: const Text('남성'),
+                            selected: genderFilter == 'MALE',
+                            onSelected: (_) => setState(() => genderFilter = 'MALE'),
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: const Text('여성'),
+                            selected: genderFilter == 'FEMALE',
+                            onSelected: (_) => setState(() => genderFilter = 'FEMALE'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            ChoiceChip(
+                              label: const Text('전체 스케일'),
+                              selected: scaleFilter == null,
+                              onSelected: (_) => setState(() => scaleFilter = null),
+                            ),
+                            for (final scale in bundle.competition.scaleCategories) ...[
+                              const SizedBox(width: 8),
+                              ChoiceChip(
+                                label: Text(scale),
+                                selected: scaleFilter == scale,
+                                onSelected: (selected) => setState(() => scaleFilter = selected ? scale : null),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: selectedEvent == null
-                      ? _OverallLeaderboardList(query: query)
-                      : _EventLeaderboardList(query: query),
+                      ? _OverallLeaderboardList(query: query, myRegistrationId: myRegId)
+                      : _EventLeaderboardList(query: query, myRegistrationId: myRegId),
                 ),
               ],
             );
@@ -125,12 +228,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 }
 
 class _OverallLeaderboardList extends ConsumerWidget {
-  const _OverallLeaderboardList({required this.query});
+  const _OverallLeaderboardList({required this.query, this.myRegistrationId});
 
   final LeaderboardQuery query;
+  final String? myRegistrationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final value = ref.watch(overallLeaderboardProvider(query));
 
     return AsyncValueView(
@@ -141,35 +246,100 @@ class _OverallLeaderboardList extends ConsumerWidget {
           return const Center(child: Text('집계된 종합 순위가 없습니다.'));
         }
 
-        return RefreshIndicator(
-          onRefresh: () async =>
-              ref.refresh(overallLeaderboardProvider(query).future),
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-            itemCount: entries.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (_, index) {
-              final entry = entries[index];
-              return Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(18),
-                  title: Text(
-                    '${_rankLabel(entry.rank)} ${entry.participantName}',
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      '총 ${entry.totalPoints}pt · ${entry.scaleCategory}\n이벤트 순위 ${entry.eventRanks.values.join(' / ')}',
+        OverallLeaderboardEntry? myEntry;
+        if (myRegistrationId != null) {
+          for (final entry in entries) {
+            if (entry.registrationId == myRegistrationId) {
+              myEntry = entry;
+              break;
+            }
+          }
+        }
+
+        return Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: () async =>
+                  ref.refresh(overallLeaderboardProvider(query).future),
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, myEntry != null ? 100 : 28),
+                itemCount: entries.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (_, index) {
+                  final entry = entries[index];
+                  final isMe = entry.registrationId == myRegistrationId;
+
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: isMe
+                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                          : BorderSide.none,
+                    ),
+                    color: isMe
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                        : theme.cardTheme.color,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(18),
+                      title: Text(
+                        '${_rankLabel(entry.rank)} ${entry.participantName}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: isMe ? theme.colorScheme.primary : null,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          '총 ${entry.totalPoints}pt · ${entry.scaleCategory}\n이벤트 순위 ${entry.eventRanks.values.join(' / ')}',
+                        ),
+                      ),
+                      onTap: entry.memberIds.isNotEmpty
+                          ? () => context.push('/athletes/${entry.memberIds.first}')
+                          : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (myEntry != null)
+              Positioned(
+                bottom: 16,
+                left: 20,
+                right: 20,
+                child: Card(
+                  color: theme.colorScheme.primary,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '나의 종합 순위',
+                              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              myEntry.participantName,
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${_rankLabel(myEntry.rank)} (${myEntry.totalPoints}pt)',
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                        ),
+                      ],
                     ),
                   ),
-                  onTap: entry.memberIds.isNotEmpty
-                      ? () => context.push('/athletes/${entry.memberIds.first}')
-                      : null,
                 ),
-              );
-            },
-          ),
+              ),
+          ],
         );
       },
     );
@@ -177,12 +347,14 @@ class _OverallLeaderboardList extends ConsumerWidget {
 }
 
 class _EventLeaderboardList extends ConsumerWidget {
-  const _EventLeaderboardList({required this.query});
+  const _EventLeaderboardList({required this.query, this.myRegistrationId});
 
   final LeaderboardQuery query;
+  final String? myRegistrationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final value = ref.watch(eventLeaderboardProvider(query));
 
     return AsyncValueView(
@@ -193,39 +365,109 @@ class _EventLeaderboardList extends ConsumerWidget {
           return const Center(child: Text('집계된 이벤트 순위가 없습니다.'));
         }
 
-        return RefreshIndicator(
-          onRefresh: () async =>
-              ref.refresh(eventLeaderboardProvider(query).future),
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-            itemCount: entries.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (_, index) {
-              final entry = entries[index];
-              final score =
-                  entry.resultCustom ??
-                  formatTimeSeconds(entry.resultTimeSeconds);
-              return Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(18),
-                  title: Text(
-                    '${_rankLabel(entry.rank)} ${entry.participantName}',
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      '$score · ${entry.scaleCategory}'
-                      '${entry.resultStatus != null ? ' · ${entry.resultStatus}' : ''}',
+        LeaderboardEntry? myEntry;
+        if (myRegistrationId != null) {
+          for (final entry in entries) {
+            if (entry.registrationId == myRegistrationId) {
+              myEntry = entry;
+              break;
+            }
+          }
+        }
+
+        return Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: () async =>
+                  ref.refresh(eventLeaderboardProvider(query).future),
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, myEntry != null ? 100 : 28),
+                itemCount: entries.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (_, index) {
+                  final entry = entries[index];
+                  final isMe = entry.registrationId == myRegistrationId;
+
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: isMe
+                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                          : BorderSide.none,
+                    ),
+                    color: isMe
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                        : theme.cardTheme.color,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(18),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${_rankLabel(entry.rank)} ${entry.participantName}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: isMe ? theme.colorScheme.primary : null,
+                              ),
+                            ),
+                          ),
+                          _ScoreChipForLeaderboard(entry: entry),
+                        ],
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          '스케일: ${entry.scaleCategory}'
+                          '${entry.resultStatus != null ? ' · Status: ${entry.resultStatus}' : ''}',
+                        ),
+                      ),
+                      onTap: entry.memberIds.isNotEmpty
+                          ? () => context.push('/athletes/${entry.memberIds.first}')
+                          : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (myEntry != null)
+              Positioned(
+                bottom: 16,
+                left: 20,
+                right: 20,
+                child: Card(
+                  color: theme.colorScheme.primary,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '나의 이벤트 순위',
+                              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              myEntry.participantName,
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          _rankLabel(myEntry.rank),
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                        ),
+                      ],
                     ),
                   ),
-                  onTap: entry.memberIds.isNotEmpty
-                      ? () => context.push('/athletes/${entry.memberIds.first}')
-                      : null,
                 ),
-              );
-            },
-          ),
+              ),
+          ],
         );
       },
     );

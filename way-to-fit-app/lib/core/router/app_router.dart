@@ -83,22 +83,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'register/individual',
             builder: (_, state) {
-              final scaleCategories =
-                  (state.extra as List<String>?) ?? const <String>[];
+              final extra = state.extra;
+              final scaleCategories = extra is Competition
+                  ? extra.scaleCategories
+                  : (extra as List<String>?) ?? const <String>[];
+              final competition = extra is Competition ? extra : null;
               return IndividualRegScreen(
                 competitionId: state.pathParameters['competitionId']!,
                 scaleCategories: scaleCategories,
+                competition: competition,
               );
             },
           ),
           GoRoute(
             path: 'register/team',
             builder: (_, state) {
-              final scaleCategories =
-                  (state.extra as List<String>?) ?? const <String>[];
+              final extra = state.extra;
+              final scaleCategories = extra is Competition
+                  ? extra.scaleCategories
+                  : (extra as List<String>?) ?? const <String>[];
+              final competition = extra is Competition ? extra : null;
               return TeamRegScreen(
                 competitionId: state.pathParameters['competitionId']!,
                 scaleCategories: scaleCategories,
+                competition: competition,
               );
             },
           ),

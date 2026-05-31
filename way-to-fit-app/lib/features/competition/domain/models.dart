@@ -98,6 +98,7 @@ class Competition {
     required this.entryFee,
     required this.bannerImageUrl,
     required this.scaleCategories,
+    this.participantsCount = 0,
   });
 
   final String id;
@@ -114,6 +115,7 @@ class Competition {
   final int entryFee;
   final String? bannerImageUrl;
   final List<String> scaleCategories;
+  final int participantsCount;
 }
 
 class CompetitionStage {

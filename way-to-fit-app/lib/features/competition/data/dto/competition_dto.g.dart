@@ -25,9 +25,10 @@ CompetitionResponseDto _$CompetitionResponseDtoFromJson(
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
-  scaleCategories: (json['scaleCategories'] as List<dynamic>? ?? [])
+  scaleCategories: (json['scaleCategories'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
+  participantsCount: (json['participantsCount'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$CompetitionResponseDtoToJson(
@@ -48,6 +49,7 @@ Map<String, dynamic> _$CompetitionResponseDtoToJson(
   'bannerImageUrl': instance.bannerImageUrl,
   'createdAt': instance.createdAt?.toIso8601String(),
   'scaleCategories': instance.scaleCategories,
+  'participantsCount': instance.participantsCount,
 };
 
 CompetitionStageResponseDto _$CompetitionStageResponseDtoFromJson(
