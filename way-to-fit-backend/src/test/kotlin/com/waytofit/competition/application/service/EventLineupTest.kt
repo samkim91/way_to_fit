@@ -21,8 +21,9 @@ class EventLineupTest {
     private val eventLineupRepository = mock(EventLineupRepository::class.java)
     private val organizerRepository = mock(CompetitionOrganizerRepository::class.java)
     private val athleteProfileRepository = mock(AthleteProfileRepository::class.java)
+    private val userQueryPort = mock(UserQueryPort::class.java)
     private val registrationService = RegistrationService(
-        registrationRepository, competitionRepository, teamMemberRepository, eventLineupRepository, organizerRepository, athleteProfileRepository
+        registrationRepository, competitionRepository, teamMemberRepository, eventLineupRepository, organizerRepository, athleteProfileRepository, userQueryPort
     )
 
     @Test

@@ -24,8 +24,9 @@ class RegistrationOrganizerTest {
     private val eventLineupRepository = mock(EventLineupRepository::class.java)
     private val organizerRepository = mock(CompetitionOrganizerRepository::class.java)
     private val athleteProfileRepository = mock(AthleteProfileRepository::class.java)
+    private val userQueryPort = mock(UserQueryPort::class.java)
     private val registrationService = RegistrationService(
-        registrationRepository, competitionRepository, teamMemberRepository, eventLineupRepository, organizerRepository, athleteProfileRepository
+        registrationRepository, competitionRepository, teamMemberRepository, eventLineupRepository, organizerRepository, athleteProfileRepository, userQueryPort
     )
 
     @Test
@@ -47,7 +48,7 @@ class RegistrationOrganizerTest {
         val result = registrationService.getRegistrations(competitionId, PaymentStatus.PENDING, pageable, userId)
 
         assertEquals(1, result.content.size)
-        assertEquals(registrations.first().id, result.content.first().id)
+        assertEquals(registrations.first().id, result.content.first().registration.id)
     }
 
     @Test
