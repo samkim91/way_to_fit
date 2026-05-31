@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_session.dart';
 import 'api_exception.dart';
+import 'error_message_resolver.dart';
 
 final apiBaseUrlProvider = Provider<String>((ref) {
   return const String.fromEnvironment(
@@ -39,11 +40,10 @@ final dioProvider = Provider<Dio>((ref) {
         handler.next(options);
       },
       onError: (error, handler) async {
-        final data = error.response?.data;
-        final message = switch (data) {
-          {'message': final String message} => message,
-          _ => error.message ?? '요청 중 오류가 발생했습니다.',
-        };
+        final message =
+            extractResponseMessage(error.response?.data) ??
+            error.message ??
+            defaultErrorMessage;
 
         if (error.response?.statusCode == 401) {
           final storage = ref.read(flutterSecureStorageProvider);
@@ -71,6 +71,7 @@ final dioProvider = Provider<Dio>((ref) {
             return handler.resolve(retryResponse);
           } catch (_) {
             await storage.delete(key: 'access_token');
+            await ref.read(authControllerProvider.notifier).clear();
           }
         }
 

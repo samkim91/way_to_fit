@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/auth/auth_session.dart';
+import '../../../../core/api/api_exception.dart';
 import '../../data/competition_repository.dart';
 import '../../domain/models.dart';
 
@@ -24,6 +26,17 @@ Registration? _matchRegistration(
   return null;
 }
 
+bool _isAuthFailure(Object error) {
+  if (error is ApiException) {
+    return error.statusCode == 401 || error.statusCode == 403;
+  }
+  if (error is DioException) {
+    final statusCode = error.response?.statusCode;
+    return statusCode == 401 || statusCode == 403;
+  }
+  return false;
+}
+
 final competitionDetailProvider = FutureProvider.autoDispose
     .family<CompetitionDetailBundle, String>((ref, competitionId) async {
       final repository = ref.watch(competitionRepositoryProvider);
@@ -39,7 +52,13 @@ final competitionDetailProvider = FutureProvider.autoDispose
 
       List<Registration> myRegistrations = [];
       if (authState?.isAuthenticated == true) {
-        myRegistrations = await repository.getMyRegistrations(competitionId);
+        try {
+          myRegistrations = await repository.getMyRegistrations(competitionId);
+        } catch (error) {
+          if (!_isAuthFailure(error)) {
+            rethrow;
+          }
+        }
       }
 
       final myScores = <String, MyEventScore>{};
@@ -49,15 +68,26 @@ final competitionDetailProvider = FutureProvider.autoDispose
           for (final event in bundle.events) {
             final reg = _matchRegistration(myRegistrations, event.eventType);
             if (reg != null && reg.paymentStatus == PaymentStatus.confirmed) {
-              futures.add(MapEntry(
-                event.id,
-                repository.getScore(competitionId, event.id, reg.id),
-              ));
+              futures.add(
+                MapEntry(
+                  event.id,
+                  repository.getScore(competitionId, event.id, reg.id),
+                ),
+              );
             }
           }
         }
-        final results = await Future.wait(futures.map((e) => e.value));
+        List<MyEventScore?> results;
+        try {
+          results = await Future.wait(futures.map((e) => e.value));
+        } catch (error) {
+          if (!_isAuthFailure(error)) {
+            rethrow;
+          }
+          results = const [];
+        }
         for (var i = 0; i < futures.length; i++) {
+          if (i >= results.length) break;
           final score = results[i];
           if (score != null) myScores[futures[i].key] = score;
         }
