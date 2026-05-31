@@ -90,12 +90,13 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
     }
   }
 
-  void _addMember(AthleteSearchResult athlete) {
-    final gender = _pendingGender[athlete.userId] ?? athlete.gender ?? 'MALE';
+  void _addMembers(List<AthleteSearchResult> athletes) {
     setState(() {
-      _members.add((athlete: athlete, gender: gender));
-      _searchResults.removeWhere((r) => r.userId == athlete.userId);
-      _pendingGender.remove(athlete.userId);
+      for (final athlete in athletes) {
+        if (!_members.any((m) => m.athlete.userId == athlete.userId)) {
+          _members.add((athlete: athlete, gender: athlete.gender ?? 'MALE'));
+        }
+      }
     });
   }
 
@@ -185,6 +186,24 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('팀 신청')),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(56),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+            onPressed: _submitting ? null : _submit,
+            child: Text(
+              _submitting ? '신청 중...' : '신청하기',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -300,59 +319,36 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
                     setState(() => _scaleCategory = value.first),
               ),
             const SizedBox(height: 24),
-            Text(
-              '팀원 추가',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: '선수 이름 검색',
-                suffixIcon: _searching
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : null,
-              ),
-              onChanged: _onSearchChanged,
-            ),
-            if (_searchResults.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Card(
-                margin: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    for (final athlete in _searchResults)
-                      _SearchResultTile(
-                        athlete: athlete,
-                        selectedGender:
-                            _pendingGender[athlete.userId] ??
-                            athlete.gender ??
-                            'MALE',
-                        onGenderChanged: (g) =>
-                            setState(() => _pendingGender[athlete.userId] = g),
-                        onAdd: () => _addMember(athlete),
-                      ),
-                  ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '팀원 추가',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
-              ),
-            ],
+                TextButton.icon(
+                  onPressed: () async {
+                    final selected = await Navigator.of(context).push<List<AthleteSearchResult>>(
+                      MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (context) => _TeamMemberSearchScreen(
+                          competitionId: widget.competitionId,
+                          alreadyAddedIds: _members.map((m) => m.athlete.userId).toSet(),
+                        ),
+                      ),
+                    );
+                    if (selected != null && selected.isNotEmpty) {
+                      _addMembers(selected);
+                    }
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('팀원 검색'),
+                ),
+              ],
+            ),
             if (_members.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                '추가된 팀원 (${_members.length}명)',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -367,16 +363,21 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
                     ),
                 ],
               ),
+            ] else ...[
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  '팀원을 검색하여 추가해주세요.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             TextField(
               controller: _paymentNoteController,
               decoration: const InputDecoration(labelText: '입금자명 / 메모'),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? '신청 중...' : '신청하기'),
             ),
           ],
         ),
@@ -385,52 +386,143 @@ class _TeamRegScreenState extends ConsumerState<TeamRegScreen> {
   }
 }
 
-class _SearchResultTile extends StatelessWidget {
-  const _SearchResultTile({
-    required this.athlete,
-    required this.selectedGender,
-    required this.onGenderChanged,
-    required this.onAdd,
+class _TeamMemberSearchScreen extends ConsumerStatefulWidget {
+  const _TeamMemberSearchScreen({
+    required this.competitionId,
+    required this.alreadyAddedIds,
   });
 
-  final AthleteSearchResult athlete;
-  final String selectedGender;
-  final ValueChanged<String> onGenderChanged;
-  final VoidCallback onAdd;
+  final String competitionId;
+  final Set<String> alreadyAddedIds;
+
+  @override
+  ConsumerState<_TeamMemberSearchScreen> createState() => _TeamMemberSearchScreenState();
+}
+
+class _TeamMemberSearchScreenState extends ConsumerState<_TeamMemberSearchScreen> {
+  final _searchController = TextEditingController();
+  List<AthleteSearchResult> _searchResults = [];
+  bool _searching = false;
+  final Set<AthleteSearchResult> _selectedAthletes = {};
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    if (value.trim().isEmpty) {
+      setState(() => _searchResults = []);
+      return;
+    }
+    _debounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _search(value.trim()),
+    );
+  }
+
+  Future<void> _search(String name) async {
+    setState(() => _searching = true);
+    try {
+      final results = await ref
+          .read(competitionRepositoryProvider)
+          .searchAthletes(widget.competitionId, name);
+      if (!mounted) return;
+      setState(() {
+        _searchResults = results
+            .where((r) => !widget.alreadyAddedIds.contains(r.userId))
+            .toList();
+      });
+    } catch (_) {
+      if (mounted) setState(() => _searchResults = []);
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('팀원 검색'),
+        actions: [
+          if (_selectedAthletes.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(_selectedAthletes.toList());
+              },
+              child: Text('완료 (${_selectedAthletes.length})'),
+            ),
+        ],
+      ),
+      body: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  athlete.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: '선수 이름 검색',
+                border: const OutlineInputBorder(),
+                suffixIcon: _searching
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : const Icon(Icons.search),
+              ),
+              onChanged: _onSearchChanged,
             ),
           ),
-          SegmentedButton<String>(
-            style: ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          if (_searchResults.isEmpty && !_searching && _searchController.text.isNotEmpty)
+            const Expanded(
+              child: Center(
+                child: Text('검색 결과가 없습니다.'),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: _searchResults.length,
+                itemBuilder: (context, index) {
+                  final athlete = _searchResults[index];
+                  final isSelected = _selectedAthletes.contains(athlete);
+                  return CheckboxListTile(
+                    value: isSelected,
+                    onChanged: (checked) {
+                      setState(() {
+                        if (checked == true) {
+                          _selectedAthletes.add(athlete);
+                        } else {
+                          _selectedAthletes.remove(athlete);
+                        }
+                      });
+                    },
+                    title: Text(athlete.name),
+                    subtitle: Text(athlete.gender == 'MALE' ? '남성' : '여성'),
+                    secondary: CircleAvatar(
+                      backgroundImage: athlete.profileImageUrl != null
+                          ? NetworkImage(athlete.profileImageUrl!)
+                          : null,
+                      child: athlete.profileImageUrl == null
+                          ? const Icon(Icons.person)
+                          : null,
+                    ),
+                  );
+                },
+              ),
             ),
-            segments: const [
-              ButtonSegment(value: 'MALE', label: Text('남')),
-              ButtonSegment(value: 'FEMALE', label: Text('여')),
-            ],
-            selected: {selectedGender},
-            onSelectionChanged: (v) => onGenderChanged(v.first),
-          ),
-          const SizedBox(width: 8),
-          TextButton(onPressed: onAdd, child: const Text('추가')),
         ],
       ),
     );
   }
 }
+

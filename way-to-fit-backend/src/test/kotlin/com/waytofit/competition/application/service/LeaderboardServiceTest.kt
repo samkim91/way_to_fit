@@ -38,8 +38,8 @@ class LeaderboardServiceTest {
         val stageId = UUID.randomUUID()
         val eventId = UUID.randomUUID()
         val event = CompetitionEvent(
-            id = eventId, stageId = stageId, competitionId = competitionId, name = "WOD 1", description = "", eventType = EventType.INDIVIDUAL, 
-            gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
+            id = eventId, stageId = stageId, competitionId = competitionId, name = "WOD 1", description = "", rulebook = "",
+            eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
             submissionDeadline = Instant.now()
         )
         
@@ -84,7 +84,7 @@ class LeaderboardServiceTest {
         val stageId = UUID.randomUUID()
         val eventId = UUID.randomUUID()
         val event = CompetitionEvent(
-            id = eventId, stageId = stageId, competitionId = competitionId, name = "WOD 1", description = "",
+            id = eventId, stageId = stageId, competitionId = competitionId, name = "WOD 1", description = "", rulebook = "",
             eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME,
             order = 1, scaleCategories = listOf("RXD", "SCALED"), submissionDeadline = Instant.now()
         )

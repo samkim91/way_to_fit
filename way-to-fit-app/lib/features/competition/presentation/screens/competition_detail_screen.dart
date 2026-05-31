@@ -109,10 +109,48 @@ class CompetitionDetailScreen extends ConsumerWidget {
           final showIndividualReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.individual);
           final showTeamReg = !bundle.myRegistrations.any((r) => r.registrationType == RegistrationType.team);
           final canRegister = showIndividualReg || showTeamReg;
+          
+          String buttonText = '';
+          bool isButtonEnabled = false;
+          final now = DateTime.now();
+
+          switch (bundle.competition.status) {
+            case CompetitionStatus.open:
+              buttonText = '${formatDate(bundle.competition.registrationStartAt)}부터 신청 가능';
+              isButtonEnabled = false;
+              break;
+            case CompetitionStatus.registrationOpen:
+              if (now.isBefore(bundle.competition.registrationStartAt)) {
+                buttonText = '${formatDate(bundle.competition.registrationStartAt)}부터 신청 가능';
+                isButtonEnabled = false;
+              } else if (now.isAfter(bundle.competition.registrationEndAt)) {
+                buttonText = '신청 마감';
+                isButtonEnabled = false;
+              } else {
+                buttonText = canRegister ? '대회 신청하기' : '신청 완료';
+                isButtonEnabled = canRegister;
+              }
+              break;
+            case CompetitionStatus.inProgress:
+              if (now.isBefore(bundle.competition.registrationEndAt)) {
+                buttonText = canRegister ? '대회 신청하기' : '신청 완료';
+                isButtonEnabled = canRegister;
+              } else {
+                buttonText = '진행 중인 대회 (신청 불가)';
+                isButtonEnabled = false;
+              }
+              break;
+            case CompetitionStatus.completed:
+              buttonText = '종료된 대회';
+              isButtonEnabled = false;
+              break;
+            default:
+              buttonText = '신청 불가';
+              isButtonEnabled = false;
+          }
 
           return Scaffold(
-            bottomNavigationBar: canRegister
-                ? SafeArea(
+            bottomNavigationBar: SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                       child: FilledButton(
@@ -122,7 +160,7 @@ class CompetitionDetailScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(18),
                           ),
                         ),
-                        onPressed: () {
+                        onPressed: isButtonEnabled ? () {
                           if (authState?.isAuthenticated != true) {
                             context.push('/login');
                             return;
@@ -140,15 +178,14 @@ class CompetitionDetailScreen extends ConsumerWidget {
                               extra: bundle.competition,
                             );
                           }
-                        },
+                        } : null,
                         child: Text(
-                          authState?.isAuthenticated == true ? '대회 신청하기' : '로그인 후 신청하기',
+                          (authState?.isAuthenticated == true || !isButtonEnabled) ? buttonText : '로그인 후 신청하기',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ),
-                  )
-                : null,
+                  ),
             body: ListView(
               padding: EdgeInsets.zero,
               children: [
@@ -226,6 +263,15 @@ class CompetitionDetailScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _InfoCard(
+                        title: '안내',
+                        child: Text(
+                          bundle.competition.description.isEmpty
+                              ? '대회 설명이 아직 등록되지 않았습니다.'
+                              : bundle.competition.description,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _InfoCard(
                         title: '참가비 및 계좌',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,15 +296,6 @@ class CompetitionDetailScreen extends ConsumerWidget {
                               ),
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _InfoCard(
-                        title: '안내',
-                        child: Text(
-                          bundle.competition.description.isEmpty
-                              ? '대회 설명이 아직 등록되지 않았습니다.'
-                              : bundle.competition.description,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -323,40 +360,50 @@ class CompetitionDetailScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Stage & Event',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 12),
-                      for (final stageBundle in bundle.stages) ...[
-                        _InfoCard(
-                          title:
-                              '${stageBundle.stage.name} · ${stageBundle.stage.stageFormat}',
-                          child: Column(
-                            children: [
-                              for (final event in stageBundle.events) ...[
-                                _EventTile(
-                                  competitionId: competitionId,
-                                  event: event,
-                                  registration: _findRegistration(bundle.myRegistrations, event.eventType),
-                                  myScore: bundle.myScores[event.id],
-                                ),
-                                if (event != stageBundle.events.last)
-                                  const Divider(height: 28),
+                      if (bundle.stages.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Text(
+                          'Stage & Event',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 12),
+                        for (final stageBundle in bundle.stages) ...[
+                          _InfoCard(
+                            title:
+                                '${stageBundle.stage.name} · ${stageBundle.stage.stageFormat}',
+                            child: Column(
+                              children: [
+                                for (final event in stageBundle.events) ...[
+                                  _EventTile(
+                                    competitionId: competitionId,
+                                    event: event,
+                                    registration: _findRegistration(bundle.myRegistrations, event.eventType),
+                                    myScore: bundle.myScores[event.id],
+                                  ),
+                                  if (event != stageBundle.events.last)
+                                    const Divider(height: 28),
+                                ],
                               ],
-                            ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                      ] else ...[
+                        const SizedBox(height: 24),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              '공개된 스테이지와 이벤트가 아직 없습니다.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 14),
                       ],
-                      if (bundle.stages.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Text('공개된 스테이지와 이벤트가 아직 없습니다.'),
-                        ),
                     ],
                   ),
                 ),
@@ -378,20 +425,23 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 12),
-            child,
-          ],
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+              child,
+            ],
+          ),
         ),
       ),
     );

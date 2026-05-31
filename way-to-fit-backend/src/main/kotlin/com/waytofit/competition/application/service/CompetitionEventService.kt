@@ -31,6 +31,7 @@ class CompetitionEventService(
             competitionId = command.competitionId,
             name = command.name,
             description = command.description,
+            rulebook = command.rulebook,
             eventType = command.eventType,
             gender = command.gender,
             wodType = command.wodType,
@@ -63,6 +64,7 @@ class CompetitionEventService(
         val updatedEvent = event.copy(
             name = command.name ?: event.name,
             description = command.description ?: event.description,
+            rulebook = command.rulebook ?: event.rulebook,
             eventType = command.eventType ?: event.eventType,
             gender = command.gender ?: event.gender,
             wodType = command.wodType ?: event.wodType,

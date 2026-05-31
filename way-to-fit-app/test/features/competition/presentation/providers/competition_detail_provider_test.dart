@@ -155,6 +155,7 @@ class _FakeCompetitionRepository extends CompetitionRepository {
         id: 'event-1',
         name: 'Event 1',
         description: 'Test event',
+        rulebook: '',
         eventType: 'INDIVIDUAL',
         wodType: 'FOR_TIME',
         order: 1,

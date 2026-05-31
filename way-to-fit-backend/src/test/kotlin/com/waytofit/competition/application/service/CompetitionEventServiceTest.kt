@@ -37,6 +37,7 @@ class CompetitionEventServiceTest {
             competitionId = competitionId,
             name = "Event 1",
             description = "Desc",
+            rulebook = "Rules",
             eventType = EventType.INDIVIDUAL,
             gender = GenderCategory.MEN,
             wodType = WodType.FOR_TIME,
@@ -44,9 +45,9 @@ class CompetitionEventServiceTest {
             scaleCategories = listOf("RXD"),
             submissionDeadline = Instant.now()
         )
-        val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "Stage 1", 
+        val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "Stage 1",
             stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
-        val event = CompetitionEvent(id = UUID.randomUUID(), stageId = stageId, competitionId = competitionId, name = "Event 1", description = "Desc", 
+        val event = CompetitionEvent(id = UUID.randomUUID(), stageId = stageId, competitionId = competitionId, name = "Event 1", description = "Desc", rulebook = "Rules",
             eventType = EventType.INDIVIDUAL, gender = GenderCategory.MEN, wodType = WodType.FOR_TIME,
             order = 1, scaleCategories = listOf("RXD"), submissionDeadline = command.submissionDeadline)
 
@@ -66,11 +67,11 @@ class CompetitionEventServiceTest {
         val stageId = UUID.randomUUID()
         val competitionId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        val existingEvent = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "Old", description = "D", 
-            eventType = EventType.INDIVIDUAL, gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, 
+        val existingEvent = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "Old", description = "D", rulebook = "Rules",
+            eventType = EventType.INDIVIDUAL, gender = GenderCategory.MEN, wodType = WodType.FOR_TIME,
             order = 1, scaleCategories = emptyList(), submissionDeadline = Instant.now())
-        val command = UpdateEventCommand(id = eventId, name = null, description = null, 
-            eventType = null, gender = null, wodType = null, timeCap = null, amrapDuration = null, emomDuration = null, 
+        val command = UpdateEventCommand(id = eventId, name = null, description = null, rulebook = null,
+            eventType = null, gender = null, wodType = null, timeCap = null, amrapDuration = null, emomDuration = null,
             weightUnit = null, order = 2, scaleCategories = null, releaseAt = null, submissionDeadline = null)
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", 
             stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())

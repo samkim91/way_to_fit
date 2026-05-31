@@ -51,6 +51,57 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('개인 신청')),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(56),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+            onPressed: submitting || scaleCategory.isEmpty
+                ? null
+                : () async {
+                    setState(() => submitting = true);
+                    try {
+                      final result = await ref
+                          .read(competitionRepositoryProvider)
+                          .registerIndividual(
+                            widget.competitionId,
+                            gender: gender,
+                            scaleCategory: scaleCategory,
+                            paymentNote:
+                                paymentNoteController.text.trim().isEmpty
+                                ? null
+                                : paymentNoteController.text.trim(),
+                          );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '${result.registrationType.label} 신청이 완료되었습니다. 현재 상태: ${result.paymentStatus.label}',
+                          ),
+                        ),
+                      );
+                      Navigator.of(context).pop();
+                    } catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(resolveErrorMessage(error))),
+                      );
+                    } finally {
+                      if (mounted) setState(() => submitting = false);
+                    }
+                  },
+            child: Text(
+              submitting ? '신청 중...' : '신청하기',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -177,44 +228,6 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
             TextField(
               controller: paymentNoteController,
               decoration: const InputDecoration(labelText: '입금자명 / 메모'),
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: submitting || scaleCategory.isEmpty
-                  ? null
-                  : () async {
-                      setState(() => submitting = true);
-                      try {
-                        final result = await ref
-                            .read(competitionRepositoryProvider)
-                            .registerIndividual(
-                              widget.competitionId,
-                              gender: gender,
-                              scaleCategory: scaleCategory,
-                              paymentNote:
-                                  paymentNoteController.text.trim().isEmpty
-                                  ? null
-                                  : paymentNoteController.text.trim(),
-                            );
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${result.registrationType.label} 신청이 완료되었습니다. 현재 상태: ${result.paymentStatus.label}',
-                            ),
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      } catch (error) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(resolveErrorMessage(error))),
-                        );
-                      } finally {
-                        if (mounted) setState(() => submitting = false);
-                      }
-                    },
-              child: Text(submitting ? '신청 중...' : '신청하기'),
             ),
           ],
         ),

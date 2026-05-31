@@ -41,15 +41,6 @@ class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
                 children: [
-                  Text(
-                    '참가자와 관중을 위한 공개 대회 목록',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.78),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,

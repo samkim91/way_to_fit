@@ -34,6 +34,9 @@ class CompetitionEventEntity(
     @Column(name = "description", columnDefinition = "TEXT")
     val description: String,
 
+    @Column(name = "rulebook", columnDefinition = "TEXT", nullable = false)
+    val rulebook: String,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
     val eventType: EventType,
@@ -83,6 +86,7 @@ class CompetitionEventEntity(
         competitionId = competitionId,
         name = name,
         description = description,
+        rulebook = rulebook,
         eventType = eventType,
         gender = gender,
         wodType = wodType,
@@ -109,6 +113,7 @@ class CompetitionEventEntity(
             competitionId = domain.competitionId,
             name = domain.name,
             description = domain.description,
+            rulebook = domain.rulebook,
             eventType = domain.eventType,
             gender = domain.gender,
             wodType = domain.wodType,

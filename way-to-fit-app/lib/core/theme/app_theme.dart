@@ -66,12 +66,19 @@ class AppTheme {
           borderSide: const BorderSide(color: _primary, width: 1.4),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
+        titleTextStyle: const TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          height: 1.25,
+        ),
       ),
     );
   }

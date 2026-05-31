@@ -111,6 +111,7 @@ export interface CompetitionEvent {
   competitionId: string;
   name: string;
   description: string;
+  rulebook: string;
   eventType: EventType;
   wodType: WodType;
   order: number;
@@ -127,6 +128,7 @@ export interface CompetitionEvent {
 export interface CreateEventRequest {
   name: string;
   description: string;
+  rulebook: string;
   eventType: EventType;
   wodType: WodType;
   order: number;
@@ -143,6 +145,7 @@ export interface CreateEventRequest {
 export interface UpdateEventRequest {
   name?: string;
   description?: string;
+  rulebook?: string;
   eventType?: EventType;
   wodType?: WodType;
   order?: number;

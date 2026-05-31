@@ -206,9 +206,12 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                     );
                   }
 
-                  return ListView(
-                    padding: const EdgeInsets.all(20),
+                  return Column(
                     children: [
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.all(20),
+                          children: [
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -292,6 +295,29 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
+                      if (event.rulebook.isNotEmpty) ...[
+                        Card(
+                          color: Colors.white.withValues(alpha: 0.03),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '룰북',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  event.rulebook,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -349,8 +375,19 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                         contentPadding: EdgeInsets.zero,
                         title: const Text('DNF (Did Not Finish)'),
                       ),
-                      const SizedBox(height: 20),
-                      FilledButton(
+                    ],
+                  ),
+                ),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
                         onPressed: _submitting
                             ? null
                             : () async {
@@ -469,12 +506,17 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                                   }
                                 }
                               },
-                        child: Text(_submitting ? '제출 중...' : '제출하기'),
+                        child: Text(
+                          _submitting ? '제출 중...' : '제출하기',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
                       ),
-                    ],
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

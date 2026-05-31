@@ -46,6 +46,7 @@ interface EventFormDialogProps {
 interface FormState {
   name: string;
   description: string;
+  rulebook: string;
   eventType: EventType;
   wodType: WodType;
   order: string;
@@ -62,6 +63,7 @@ interface FormState {
 const defaultForm: FormState = {
   name: '',
   description: '',
+  rulebook: '',
   eventType: 'INDIVIDUAL',
   wodType: 'FOR_TIME',
   order: '1',
@@ -112,6 +114,7 @@ export function EventFormDialog({
         setFormData({
           name: event.name,
           description: event.description,
+          rulebook: event.rulebook,
           eventType: event.eventType,
           wodType: event.wodType,
           order: String(event.order),
@@ -135,6 +138,7 @@ export function EventFormDialog({
       const payload: CreateEventRequest = {
         name: data.name.trim(),
         description: data.description.trim(),
+        rulebook: data.rulebook.trim(),
         eventType: data.eventType,
         wodType: data.wodType,
         order: Number(data.order),
@@ -163,6 +167,7 @@ export function EventFormDialog({
   const handleSubmit = () => {
     const newErrors: typeof errors = {};
     if (!formData.name.trim()) newErrors.name = '이름을 입력해주세요.';
+    if (!formData.rulebook.trim()) newErrors.rulebook = '룰북을 입력해주세요.';
     if (!formData.order || Number(formData.order) < 1) newErrors.order = '순서는 1 이상이어야 합니다.';
     if (!formData.submissionDeadline) newErrors.submissionDeadline = '제출 마감일시를 선택해주세요.';
     if (!formData.scaleCategories.length)
@@ -352,6 +357,17 @@ export function EventFormDialog({
               rows={3}
               placeholder="예: 21-15-9&#10;Thrusters&#10;Pull-ups"
             />
+          </div>
+
+          <div className="space-y-1">
+            <Label>룰북 *</Label>
+            <Textarea
+              value={formData.rulebook}
+              onChange={(e) => set('rulebook')(e.target.value)}
+              rows={4}
+              placeholder="채점 기준, 동작 기준, 규칙 등을 입력해주세요."
+            />
+            {errors.rulebook && <p className="text-xs text-destructive">{errors.rulebook}</p>}
           </div>
 
           <div className="space-y-1">

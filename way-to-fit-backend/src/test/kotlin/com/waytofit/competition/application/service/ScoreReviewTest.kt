@@ -41,8 +41,8 @@ class ScoreReviewTest {
 
         val score = CompetitionScore(id = scoreId, eventId = eventId, registrationId = UUID.randomUUID(), resultStatus = ResultStatus.COMPLETED, 
             videoUrl = "url", status = ScoreStatus.SUBMITTED)
-        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL, 
-            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
+        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", rulebook = "", eventType = EventType.INDIVIDUAL,
+            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
             submissionDeadline = Instant.now())
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", 
             stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
@@ -71,8 +71,8 @@ class ScoreReviewTest {
 
         val score = CompetitionScore(id = scoreId, eventId = eventId, registrationId = UUID.randomUUID(), resultStatus = ResultStatus.COMPLETED, 
             videoUrl = "url", status = ScoreStatus.SUBMITTED)
-        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL, 
-            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
+        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", rulebook = "", eventType = EventType.INDIVIDUAL,
+            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
             submissionDeadline = Instant.now())
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", 
             stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())

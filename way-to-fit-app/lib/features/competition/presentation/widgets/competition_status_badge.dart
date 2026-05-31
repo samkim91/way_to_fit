@@ -21,15 +21,14 @@ class CompetitionStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.58)),
       ),
       child: Text(
         status.label,
         style: theme.textTheme.labelMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

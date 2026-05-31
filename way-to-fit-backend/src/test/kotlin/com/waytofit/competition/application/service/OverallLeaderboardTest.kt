@@ -40,8 +40,8 @@ class OverallLeaderboardTest {
 
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
         val events = listOf(
-            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), submissionDeadline = Instant.now()),
-            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = emptyList(), submissionDeadline = Instant.now())
+            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), submissionDeadline = Instant.now()),
+            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = emptyList(), submissionDeadline = Instant.now())
         )
 
         val detailsE1 = listOf(
@@ -93,8 +93,8 @@ class OverallLeaderboardTest {
 
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
         val events = listOf(
-            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = listOf("RXD", "SCALED"), submissionDeadline = Instant.now()),
-            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = listOf("RXD", "SCALED"), submissionDeadline = Instant.now())
+            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = listOf("RXD", "SCALED"), submissionDeadline = Instant.now()),
+            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = listOf("RXD", "SCALED"), submissionDeadline = Instant.now())
         )
 
         val detailsE1 = listOf(
@@ -138,8 +138,8 @@ class OverallLeaderboardTest {
 
         val stage = CompetitionStage(id = stageId, competitionId = competitionId, name = "S", stageType = StageType.QUALIFIER, stageFormat = StageFormat.ONLINE, startAt = Instant.now(), endAt = Instant.now())
         val events = listOf(
-            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = listOf("RXD"), submissionDeadline = Instant.now()),
-            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = listOf("RXD"), submissionDeadline = Instant.now())
+            CompetitionEvent(id = event1Id, stageId = stageId, competitionId = competitionId, name = "E1", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 1, scaleCategories = listOf("RXD"), submissionDeadline = Instant.now()),
+            CompetitionEvent(id = event2Id, stageId = stageId, competitionId = competitionId, name = "E2", description = "", rulebook = "", eventType = EventType.INDIVIDUAL, gender = GenderCategory.MIXED, wodType = WodType.FOR_TIME, order = 2, scaleCategories = listOf("RXD"), submissionDeadline = Instant.now())
         )
 
         val detailsE1 = listOf(

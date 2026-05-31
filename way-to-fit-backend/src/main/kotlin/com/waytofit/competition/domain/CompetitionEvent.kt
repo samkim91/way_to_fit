@@ -14,6 +14,7 @@ data class CompetitionEvent(
     val competitionId: UUID,
     val name: String,
     val description: String,
+    val rulebook: String,
     val eventType: EventType,
     val gender: GenderCategory,
     val wodType: WodType,

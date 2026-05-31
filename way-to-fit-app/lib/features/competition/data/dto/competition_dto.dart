@@ -109,6 +109,7 @@ class CompetitionEventResponseDto {
     required this.competitionId,
     required this.name,
     required this.description,
+    required this.rulebook,
     required this.eventType,
     required this.wodType,
     required this.order,
@@ -127,6 +128,7 @@ class CompetitionEventResponseDto {
   final String competitionId;
   final String name;
   final String description;
+  final String rulebook;
   final String eventType;
   final String wodType;
   final int order;
@@ -148,6 +150,7 @@ class CompetitionEventResponseDto {
     id: id,
     name: name,
     description: description,
+    rulebook: rulebook,
     eventType: eventType,
     wodType: wodType,
     order: order,

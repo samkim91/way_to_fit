@@ -43,8 +43,8 @@ class CompetitionScoreServiceTest {
         val userId = UUID.randomUUID()
         val command = SubmitScoreCommand(eventId, regId, ResultStatus.COMPLETED, 300, null, null, null, null, "https://vimeo.com/123456")
         
-        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL, 
-            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
+        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", rulebook = "", eventType = EventType.INDIVIDUAL,
+            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
             submissionDeadline = Instant.now().plusSeconds(3600))
         val registration = CompetitionRegistration(id = regId, competitionId = competitionId, userId = userId, registrationType = RegistrationType.INDIVIDUAL, 
             gender = Gender.MALE, scaleCategory = "RXD", paymentStatus = PaymentStatus.CONFIRMED)
@@ -72,7 +72,7 @@ class CompetitionScoreServiceTest {
         val userId = UUID.randomUUID()
         val command = SubmitScoreCommand(eventId, regId, ResultStatus.COMPLETED, 300, null, null, null, null, "not-a-url")
 
-        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL,
+        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", rulebook = "", eventType = EventType.INDIVIDUAL,
             gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
             submissionDeadline = Instant.now().plusSeconds(3600))
         val registration = CompetitionRegistration(id = regId, competitionId = competitionId, userId = userId, registrationType = RegistrationType.INDIVIDUAL,

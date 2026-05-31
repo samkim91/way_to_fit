@@ -155,102 +155,36 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          for (final filter
-                              in _LeaderboardRegistrationFilter.values)
-                            ChoiceChip(
-                              label: Text(filter.label),
-                              selected: registrationFilter == filter,
-                              onSelected: (_) {
-                                setState(() {
-                                  registrationFilter = filter;
-                                  selectedTab = 0;
-                                  genderFilter = null;
-                                  scaleFilter = null;
-                                });
-                              },
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            for (
-                              var index = 0;
-                              index < eventTabs.length;
-                              index++
-                            )
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(eventTabs[index]?.name ?? '종합'),
-                                  selected: normalizedIndex == index,
-                                  onSelected: (_) =>
-                                      setState(() => selectedTab = index),
-                                ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  for (var index = 0; index < eventTabs.length; index++)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: ChoiceChip(
+                                        label: Text(eventTabs[index]?.name ?? '종합'),
+                                        selected: normalizedIndex == index,
+                                        onSelected: (_) => setState(() => selectedTab = index),
+                                      ),
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ChoiceChip(
-                            label: const Text('전체 성별'),
-                            selected: genderFilter == null,
-                            onSelected: (_) =>
-                                setState(() => genderFilter = null),
+                            ),
                           ),
-                          ChoiceChip(
-                            label: const Text('남성'),
-                            selected: genderFilter == 'MALE',
-                            onSelected: (_) =>
-                                setState(() => genderFilter = 'MALE'),
-                          ),
-                          ChoiceChip(
-                            label: const Text('여성'),
-                            selected: genderFilter == 'FEMALE',
-                            onSelected: (_) =>
-                                setState(() => genderFilter = 'FEMALE'),
+                          IconButton(
+                            icon: const Icon(Icons.filter_list),
+                            onPressed: () => _showFilterDialog(context, bundle.competition),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            ChoiceChip(
-                              label: const Text('전체 스케일'),
-                              selected: scaleFilter == null,
-                              onSelected: (_) =>
-                                  setState(() => scaleFilter = null),
-                            ),
-                            for (final scale
-                                in bundle.competition.scaleCategories) ...[
-                              const SizedBox(width: 8),
-                              ChoiceChip(
-                                label: Text(scale),
-                                selected: scaleFilter == scale,
-                                onSelected: (selected) => setState(
-                                  () => scaleFilter = selected ? scale : null,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
                 Expanded(
                   child: selectedEvent == null
                       ? _OverallLeaderboardList(
@@ -269,6 +203,135 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               ref.invalidate(competitionDetailProvider(widget.competitionId)),
         ),
       ),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context, Competition competition) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '필터 설정',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('참가 유형', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final filter in _LeaderboardRegistrationFilter.values)
+                          ChoiceChip(
+                            label: Text(filter.label),
+                            selected: registrationFilter == filter,
+                            onSelected: (_) {
+                              setModalState(() {
+                                registrationFilter = filter;
+                                selectedTab = 0;
+                              });
+                              setState(() {
+                                registrationFilter = filter;
+                                selectedTab = 0;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('성별', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('전체'),
+                          selected: genderFilter == null,
+                          onSelected: (_) {
+                            setModalState(() => genderFilter = null);
+                            setState(() => genderFilter = null);
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('남성'),
+                          selected: genderFilter == 'MALE',
+                          onSelected: (_) {
+                            setModalState(() => genderFilter = 'MALE');
+                            setState(() => genderFilter = 'MALE');
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('여성'),
+                          selected: genderFilter == 'FEMALE',
+                          onSelected: (_) {
+                            setModalState(() => genderFilter = 'FEMALE');
+                            setState(() => genderFilter = 'FEMALE');
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('스케일', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('전체'),
+                          selected: scaleFilter == null,
+                          onSelected: (_) {
+                            setModalState(() => scaleFilter = null);
+                            setState(() => scaleFilter = null);
+                          },
+                        ),
+                        for (final scale in competition.scaleCategories)
+                          ChoiceChip(
+                            label: Text(scale),
+                            selected: scaleFilter == scale,
+                            onSelected: (selected) {
+                              setModalState(() => scaleFilter = selected ? scale : null);
+                              setState(() => scaleFilter = selected ? scale : null);
+                            },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('적용하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
