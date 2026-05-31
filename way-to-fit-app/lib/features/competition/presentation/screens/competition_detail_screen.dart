@@ -174,6 +174,7 @@ class CompetitionDetailScreen extends ConsumerWidget {
                     onPressed: () => authState?.isAuthenticated == true
                         ? context.push(
                             '/competitions/$competitionId/register/individual',
+                            extra: bundle.competition.scaleCategories,
                           )
                         : context.push('/login'),
                   ),
@@ -183,8 +184,10 @@ class CompetitionDetailScreen extends ConsumerWidget {
                   _ActionRow(
                     label: '팀 신청하기',
                     description: '팀원을 검색하여 팀으로 참가 신청합니다.',
-                    onPressed: () =>
-                        context.push('/competitions/$competitionId/register/team'),
+                    onPressed: () => context.push(
+                      '/competitions/$competitionId/register/team',
+                      extra: bundle.competition.scaleCategories,
+                    ),
                   ),
                 const SizedBox(height: 24),
                 Text(

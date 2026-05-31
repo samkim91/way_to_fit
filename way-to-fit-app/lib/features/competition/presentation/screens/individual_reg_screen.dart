@@ -4,9 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/competition_repository.dart';
 
 class IndividualRegScreen extends ConsumerStatefulWidget {
-  const IndividualRegScreen({super.key, required this.competitionId});
+  const IndividualRegScreen({
+    super.key,
+    required this.competitionId,
+    required this.scaleCategories,
+  });
 
   final String competitionId;
+  final List<String> scaleCategories;
 
   @override
   ConsumerState<IndividualRegScreen> createState() =>
@@ -15,9 +20,17 @@ class IndividualRegScreen extends ConsumerStatefulWidget {
 
 class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
   String gender = 'MALE';
-  String scaleCategory = 'RXD';
+  late String scaleCategory;
   final paymentNoteController = TextEditingController();
   bool submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    scaleCategory = widget.scaleCategories.isNotEmpty
+        ? widget.scaleCategories.first
+        : '';
+  }
 
   @override
   void dispose() {
@@ -27,6 +40,7 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categories = widget.scaleCategories;
     return Scaffold(
       appBar: AppBar(title: const Text('개인 신청')),
       body: SafeArea(
@@ -45,15 +59,15 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                   setState(() => gender = value.first),
             ),
             const SizedBox(height: 16),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'RXD', label: Text('RXD')),
-                ButtonSegment(value: 'SCALED', label: Text('SCALED')),
-              ],
-              selected: {scaleCategory},
-              onSelectionChanged: (value) =>
-                  setState(() => scaleCategory = value.first),
-            ),
+            if (categories.isNotEmpty)
+              SegmentedButton<String>(
+                segments: categories
+                    .map((cat) => ButtonSegment(value: cat, label: Text(cat)))
+                    .toList(),
+                selected: {scaleCategory},
+                onSelectionChanged: (value) =>
+                    setState(() => scaleCategory = value.first),
+              ),
             const SizedBox(height: 16),
             TextField(
               controller: paymentNoteController,
@@ -61,7 +75,7 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: submitting
+              onPressed: submitting || scaleCategory.isEmpty
                   ? null
                   : () async {
                       setState(() => submitting = true);

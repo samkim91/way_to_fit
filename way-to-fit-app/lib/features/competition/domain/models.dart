@@ -97,6 +97,7 @@ class Competition {
     required this.accountHolder,
     required this.entryFee,
     required this.bannerImageUrl,
+    required this.scaleCategories,
   });
 
   final String id;
@@ -112,6 +113,7 @@ class Competition {
   final String accountHolder;
   final int entryFee;
   final String? bannerImageUrl;
+  final List<String> scaleCategories;
 }
 
 class CompetitionStage {
