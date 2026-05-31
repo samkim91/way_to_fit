@@ -1,11 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import type { CompetitionEvent } from '@/features/competition/types';
+import type {
+  CompetitionEvent,
+  OverallLeaderboardEntry,
+  OverallLeaderboardResponse,
+} from '@/features/competition/types';
 import { leaderboardApi, stageApi, eventApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Maximize2, Wifi, WifiOff } from 'lucide-react';
 import { useCompetitionWebSocket } from '@/hooks/useCompetitionWebSocket';
 
@@ -13,46 +17,34 @@ export function LeaderboardTab() {
   const { competitionId } = useOutletContext<{ competitionId: string }>();
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [scaleCategory, setScaleCategory] = useState<string>('ALL');
-  const [wsConnected, setWsConnected] = useState(false);
-  const [wsData, setWsData] = useState<any>(null);
+  const [wsData, setWsData] = useState<OverallLeaderboardResponse | null>(null);
 
   const { data: stages } = useQuery({
     queryKey: ['stages', competitionId],
     queryFn: () => stageApi.getStages(competitionId),
   });
 
-  useEffect(() => {
-    if (stages && stages.length > 0 && !selectedStageId) {
-      setSelectedStageId(stages[0].id);
-    }
-  }, [stages, selectedStageId]);
+  const effectiveStageId = selectedStageId || stages?.[0]?.id || '';
 
   const { data: initialLeaderboard, isLoading } = useQuery({
-    queryKey: ['leaderboard', 'overall', competitionId, selectedStageId],
-    queryFn: () => leaderboardApi.getOverallLeaderboard(competitionId, selectedStageId),
-    enabled: !!selectedStageId,
+    queryKey: ['leaderboard', 'overall', competitionId, effectiveStageId],
+    queryFn: () => leaderboardApi.getOverallLeaderboard(competitionId, effectiveStageId),
+    enabled: !!effectiveStageId,
   });
 
   const { data: events } = useQuery({
-    queryKey: ['events', competitionId, selectedStageId],
-    queryFn: () => eventApi.getEvents(competitionId, selectedStageId),
-    enabled: !!selectedStageId,
+    queryKey: ['events', competitionId, effectiveStageId],
+    queryFn: () => eventApi.getEvents(competitionId, effectiveStageId),
+    enabled: !!effectiveStageId,
   });
 
-  const { isConnectedRef } = useCompetitionWebSocket({
+  const { isConnected } = useCompetitionWebSocket({
     competitionId,
-    stageId: selectedStageId,
+    stageId: effectiveStageId,
     onOverallLeaderboardUpdate: (data) => {
       setWsData(data);
-    }
+    },
   });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWsConnected(isConnectedRef.current);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isConnectedRef]);
 
   const leaderboard = wsData || initialLeaderboard;
 
@@ -65,7 +57,9 @@ export function LeaderboardTab() {
   const displayEntries = useMemo(
     () => scaleCategory === 'ALL'
       ? (leaderboard?.entries ?? [])
-      : (leaderboard?.entries ?? []).filter((e: any) => e.scaleCategory === scaleCategory),
+      : (leaderboard?.entries ?? []).filter(
+          (entry: OverallLeaderboardEntry) => entry.scaleCategory === scaleCategory,
+        ),
     [leaderboard, scaleCategory],
   );
 
@@ -81,7 +75,7 @@ export function LeaderboardTab() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h2 className="text-xl font-bold">리더보드</h2>
-          <Select value={selectedStageId} onValueChange={setSelectedStageId}>
+          <Select value={effectiveStageId} onValueChange={setSelectedStageId}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="스테이지 선택" />
             </SelectTrigger>
@@ -106,9 +100,9 @@ export function LeaderboardTab() {
           )}
         </div>
         <div className="flex items-center space-x-4">
-          <div className={`flex items-center px-3 py-1 rounded-full text-xs ${wsConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {wsConnected ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
-            {wsConnected ? '실시간 연결됨' : '연결 끊김'}
+          <div className={`flex items-center px-3 py-1 rounded-full text-xs ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {isConnected ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
+            {isConnected ? '실시간 연결됨' : '연결 끊김'}
           </div>
           <Button variant="outline" size="sm" onClick={handleFullscreen}>
             <Maximize2 className="mr-2 h-4 w-4" /> 전체화면
@@ -132,7 +126,7 @@ export function LeaderboardTab() {
             ) : displayEntries.length === 0 ? (
               <TableRow><TableCell colSpan={4} className="text-center">데이터가 없습니다.</TableCell></TableRow>
             ) : (
-              displayEntries.map((entry: any) => (
+              displayEntries.map((entry) => (
                 <TableRow key={entry.registrationId}>
                   <TableCell className="text-center font-bold">{entry.rank}</TableCell>
                   <TableCell className="font-medium">

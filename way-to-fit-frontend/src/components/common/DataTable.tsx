@@ -33,6 +33,8 @@ export function DataTable<TData, TValue>({
   onPaginationChange,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
+  // TanStack Table is intentionally used here as the stateful table engine.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

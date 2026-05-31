@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,20 +45,39 @@ const defaultForm: FormState = {
 };
 
 export function StageFormDialog({ open, onOpenChange, competitionId, stage }: StageFormDialogProps) {
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<FormState>(defaultForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const formKey = `${stage?.id ?? 'new'}:${open ? 'open' : 'closed'}`;
 
-  useEffect(() => {
-    if (open) {
-      setErrors({});
-      setFormData(
-        stage
-          ? { name: stage.name, stageType: stage.stageType, stageFormat: stage.stageFormat, startAt: stage.startAt, endAt: stage.endAt }
-          : defaultForm,
-      );
-    }
-  }, [open, stage]);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{stage ? 'Stage 편집' : 'Stage 추가'}</DialogTitle>
+        </DialogHeader>
+        <StageFormDialogContent
+          key={formKey}
+          onOpenChange={onOpenChange}
+          competitionId={competitionId}
+          stage={stage}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function createFormState(stage: CompetitionStage | null): FormState {
+  return stage
+    ? { name: stage.name, stageType: stage.stageType, stageFormat: stage.stageFormat, startAt: stage.startAt, endAt: stage.endAt }
+    : defaultForm;
+}
+
+function StageFormDialogContent({
+  onOpenChange,
+  competitionId,
+  stage,
+}: Omit<StageFormDialogProps, 'open'>) {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<FormState>(() => createFormState(stage));
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   const mutation = useMutation({
     mutationFn: (data: FormState) =>
@@ -86,13 +105,7 @@ export function StageFormDialog({ open, onOpenChange, competitionId, stage }: St
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{stage ? 'Stage 편집' : 'Stage 추가'}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
+    <div className="space-y-4">
           <div className="space-y-1">
             <Label>이름 *</Label>
             <Input
@@ -163,8 +176,6 @@ export function StageFormDialog({ open, onOpenChange, competitionId, stage }: St
               {mutation.isPending ? '저장 중...' : '저장'}
             </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

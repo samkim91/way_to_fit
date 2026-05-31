@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,12 +15,49 @@ import {
   competitionVisibilityOptions,
   normalizeCompetitionVisibility,
 } from '@/features/competition/labels';
-import type { CompetitionVisibility } from '@/features/competition/types';
+import type { Competition, CompetitionVisibility } from '@/features/competition/types';
+
+type CompetitionFormState = {
+  name: string;
+  description: string;
+  startAt: string;
+  endAt: string;
+  registrationStartAt: string;
+  registrationEndAt: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  entryFee: number;
+  bannerImageUrl: string;
+  visibility: CompetitionVisibility;
+};
+
+type CompetitionEditFormProps = {
+  competition: Competition;
+  competitionId: string;
+  onBack: () => void;
+};
+
+function createCompetitionFormState(competition: Competition): CompetitionFormState {
+  return {
+    name: competition.name,
+    description: competition.description || '',
+    startAt: dayjs(competition.startAt).format('YYYY-MM-DD'),
+    endAt: dayjs(competition.endAt).format('YYYY-MM-DD'),
+    registrationStartAt: dayjs(competition.registrationStartAt).format('YYYY-MM-DDTHH:mm'),
+    registrationEndAt: dayjs(competition.registrationEndAt).format('YYYY-MM-DDTHH:mm'),
+    bankName: competition.bankName || '',
+    accountNumber: competition.accountNumber || '',
+    accountHolder: competition.accountHolder || '',
+    entryFee: competition.entryFee || 0,
+    bannerImageUrl: competition.bannerImageUrl || '',
+    visibility: normalizeCompetitionVisibility(competition.visibility),
+  };
+}
 
 export function CompetitionEditPage() {
   const { competitionId } = useParams<{ competitionId: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const { data: competition, isLoading } = useQuery({
     queryKey: ['competition', competitionId],
@@ -28,50 +65,41 @@ export function CompetitionEditPage() {
     enabled: !!competitionId,
   });
 
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    startAt: '',
-    endAt: '',
-    registrationStartAt: '',
-    registrationEndAt: '',
-    bankName: '',
-    accountNumber: '',
-    accountHolder: '',
-    entryFee: 0,
-    bannerImageUrl: '',
-    visibility: 'PRIVATE' as CompetitionVisibility,
-  });
+  if (isLoading || !competition || !competitionId) {
+    return <div>로딩 중...</div>;
+  }
 
-  const [scaleCategoriesInput, setScaleCategoriesInput] = useState('');
+  return (
+    <CompetitionEditForm
+      key={competition.id}
+      competition={competition}
+      competitionId={competitionId}
+      onBack={() => navigate(`/competitions/${competitionId}/config`)}
+    />
+  );
+}
 
-  useEffect(() => {
-    if (competition) {
-      setFormData({
-        name: competition.name,
-        description: competition.description || '',
-        startAt: dayjs(competition.startAt).format('YYYY-MM-DD'),
-        endAt: dayjs(competition.endAt).format('YYYY-MM-DD'),
-        registrationStartAt: dayjs(competition.registrationStartAt).format('YYYY-MM-DDTHH:mm'),
-        registrationEndAt: dayjs(competition.registrationEndAt).format('YYYY-MM-DDTHH:mm'),
-        bankName: competition.bankName || '',
-        accountNumber: competition.accountNumber || '',
-        accountHolder: competition.accountHolder || '',
-        entryFee: competition.entryFee || 0,
-        bannerImageUrl: competition.bannerImageUrl || '',
-        visibility: normalizeCompetitionVisibility(competition.visibility),
-      });
-      setScaleCategoriesInput((competition.scaleCategories ?? []).join(', '));
-    }
-  }, [competition]);
+function CompetitionEditForm({
+  competition,
+  competitionId,
+  onBack,
+}: CompetitionEditFormProps) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<CompetitionFormState>(
+    () => createCompetitionFormState(competition),
+  );
+  const [scaleCategoriesInput, setScaleCategoriesInput] = useState(
+    () => (competition.scaleCategories ?? []).join(', '),
+  );
 
   const mutation = useMutation({
-    mutationFn: (data: typeof formData) => {
-      if (!competitionId) throw new Error('No competition ID');
+    mutationFn: (data: CompetitionFormState) => {
       const scaleCategories = scaleCategoriesInput
         .split(',')
-        .map((s) => s.trim())
+        .map((value) => value.trim())
         .filter(Boolean);
+
       return competitionApi.updateCompetition(competitionId, {
         ...data,
         startAt: new Date(data.startAt).toISOString(),
@@ -96,26 +124,29 @@ export function CompetitionEditPage() {
     e.preventDefault();
     const scaleCategories = scaleCategoriesInput
       .split(',')
-      .map((s) => s.trim())
+      .map((value) => value.trim())
       .filter(Boolean);
+
     if (scaleCategories.length === 0) {
       alert('참가 부문을 하나 이상 입력해주세요.');
       return;
     }
+
     mutation.mutate(formData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'entryFee' ? Number(value) : value,
+    }));
   };
-
-  if (isLoading) return <div>로딩 중...</div>;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate(`/competitions/${competitionId}/config`)}>
+        <Button variant="ghost" onClick={onBack}>
           ← 대회 상세
         </Button>
         <h1 className="text-2xl font-bold">대회 편집</h1>
@@ -168,7 +199,12 @@ export function CompetitionEditPage() {
               <Label>공개 상태</Label>
               <Select
                 value={formData.visibility}
-                onValueChange={(val) => setFormData((p) => ({ ...p, visibility: val as CompetitionVisibility }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    visibility: value as CompetitionVisibility,
+                  }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="공개 상태 선택" />

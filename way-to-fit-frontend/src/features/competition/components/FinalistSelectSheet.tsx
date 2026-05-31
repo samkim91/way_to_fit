@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,11 +26,38 @@ interface FinalistSelectSheetProps {
 }
 
 export function FinalistSelectSheet({ open, onOpenChange, competitionId, stage }: FinalistSelectSheetProps) {
+  if (!stage) return null;
+
+  const contentKey = `${stage.id}:${open ? 'open' : 'closed'}`;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>본선 진출자 선별 - {stage.name}</SheetTitle>
+          <p className="text-sm text-muted-foreground">선택한 참가자/팀을 본선 진출 확정으로 저장합니다.</p>
+        </SheetHeader>
+        <FinalistSelectSheetContent
+          key={contentKey}
+          onOpenChange={onOpenChange}
+          competitionId={competitionId}
+          stage={stage}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function FinalistSelectSheetContent({
+  onOpenChange,
+  competitionId,
+  stage,
+}: Omit<FinalistSelectSheetProps, 'open'> & { stage: CompetitionStage }) {
   const queryClient = useQueryClient();
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [registrationType, setRegistrationType] = useState<RegistrationType | 'ALL'>('ALL');
   const [gender, setGender] = useState<GenderCategory | 'ALL'>('ALL');
   const [scaleCategory, setScaleCategory] = useState<string>('ALL');
+  const [selectedIdsOverride, setSelectedIdsOverride] = useState<Set<string> | null>(null);
 
   const leaderboardParams = {
     registrationType: registrationType !== 'ALL' ? registrationType : undefined,
@@ -39,36 +66,21 @@ export function FinalistSelectSheet({ open, onOpenChange, competitionId, stage }
   };
 
   const { data: leaderboard, isLoading: leaderboardLoading } = useQuery({
-    queryKey: ['leaderboard-overall', competitionId, stage?.id, leaderboardParams],
-    queryFn: () => leaderboardApi.getOverallLeaderboard(competitionId, stage!.id, leaderboardParams),
-    enabled: open && !!stage,
+    queryKey: ['leaderboard-overall', competitionId, stage.id, leaderboardParams],
+    queryFn: () => leaderboardApi.getOverallLeaderboard(competitionId, stage.id, leaderboardParams),
   });
 
   const { data: existingFinalists } = useQuery({
-    queryKey: ['finalists', competitionId, stage?.id],
-    queryFn: () => stageApi.getFinalists(competitionId, stage!.id),
-    enabled: open && !!stage,
+    queryKey: ['finalists', competitionId, stage.id],
+    queryFn: () => stageApi.getFinalists(competitionId, stage.id),
   });
-
-  useEffect(() => {
-    if (existingFinalists) {
-      setSelectedIds(new Set(existingFinalists));
-    }
-  }, [existingFinalists]);
-
-  useEffect(() => {
-    if (open) {
-      setRegistrationType('ALL');
-      setGender('ALL');
-      setScaleCategory('ALL');
-    }
-  }, [open]);
+  const selectedIds = selectedIdsOverride ?? new Set(existingFinalists ?? []);
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      stageApi.selectFinalists(competitionId, stage!.id, Array.from(selectedIds)),
+      stageApi.selectFinalists(competitionId, stage.id, Array.from(selectedIds)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['finalists', competitionId, stage?.id] });
+      queryClient.invalidateQueries({ queryKey: ['finalists', competitionId, stage.id] });
       onOpenChange(false);
     },
     onError: () => {
@@ -76,29 +88,24 @@ export function FinalistSelectSheet({ open, onOpenChange, competitionId, stage }
     },
   });
 
-  if (!stage) return null;
-
   const entries = leaderboard?.entries ?? [];
 
   const allScaleCategories = Array.from(new Set(entries.map((e) => e.scaleCategory))).sort();
 
   const toggle = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedIdsOverride((prev) => {
+      const next = new Set(prev ?? existingFinalists ?? []);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>본선 진출자 선별 — {stage.name}</SheetTitle>
-          <p className="text-sm text-muted-foreground">선택한 참가자/팀을 본선 진출 확정으로 저장합니다.</p>
-        </SheetHeader>
-
-        <div className="mt-4 space-y-4">
+    <div className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
             <Select value={registrationType} onValueChange={(v) => setRegistrationType(v as typeof registrationType)}>
               <SelectTrigger className="w-28">
@@ -171,8 +178,6 @@ export function FinalistSelectSheet({ open, onOpenChange, competitionId, stage }
               </Button>
             </div>
           </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }

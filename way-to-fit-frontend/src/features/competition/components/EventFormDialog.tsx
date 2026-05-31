@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,35 +103,60 @@ export function EventFormDialog({
   event,
   competitionScaleCategories,
 }: EventFormDialogProps) {
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<FormState>(defaultForm);
-  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+  const formKey = `${event?.id ?? 'new'}:${open ? 'open' : 'closed'}`;
 
-  useEffect(() => {
-    if (open) {
-      setErrors({});
-      if (event) {
-        setFormData({
-          name: event.name,
-          description: event.description,
-          rulebook: event.rulebook,
-          eventType: event.eventType,
-          wodType: event.wodType,
-          order: String(event.order),
-          gender: normalizeGenderForEventType(event.eventType, event.gender),
-          scaleCategories: event.scaleCategories,
-          submissionDeadline: event.submissionDeadline,
-          releaseAt: event.releaseAt ?? '',
-          timeCapMinutes: toMinutes(event.timeCap),
-          amrapMinutes: toMinutes(event.amrapDuration),
-          emomMinutes: toMinutes(event.emomDuration),
-          weightUnit: event.weightUnit ?? '',
-        });
-      } else {
-        setFormData(defaultForm);
-      }
-    }
-  }, [open, event]);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{event ? 'Event 편집' : 'Event 추가'}</DialogTitle>
+        </DialogHeader>
+        <EventFormDialogContent
+          key={formKey}
+          onOpenChange={onOpenChange}
+          competitionId={competitionId}
+          stageId={stageId}
+          event={event}
+          competitionScaleCategories={competitionScaleCategories}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function createFormState(event: CompetitionEvent | null): FormState {
+  if (!event) {
+    return defaultForm;
+  }
+
+  return {
+    name: event.name,
+    description: event.description,
+    rulebook: event.rulebook,
+    eventType: event.eventType,
+    wodType: event.wodType,
+    order: String(event.order),
+    gender: normalizeGenderForEventType(event.eventType, event.gender),
+    scaleCategories: event.scaleCategories,
+    submissionDeadline: event.submissionDeadline,
+    releaseAt: event.releaseAt ?? '',
+    timeCapMinutes: toMinutes(event.timeCap),
+    amrapMinutes: toMinutes(event.amrapDuration),
+    emomMinutes: toMinutes(event.emomDuration),
+    weightUnit: event.weightUnit ?? '',
+  };
+}
+
+function EventFormDialogContent({
+  onOpenChange,
+  competitionId,
+  stageId,
+  event,
+  competitionScaleCategories,
+}: Omit<EventFormDialogProps, 'open'>) {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<FormState>(() => createFormState(event));
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
   const saveMutation = useMutation({
     mutationFn: (data: FormState) => {
@@ -199,13 +224,7 @@ export function EventFormDialog({
   const genderOptions = getGenderOptions(formData.eventType);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{event ? 'Event 편집' : 'Event 추가'}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
+    <div className="space-y-4">
           <div className="space-y-1">
             <Label>이름 *</Label>
             <Input
@@ -404,8 +423,6 @@ export function EventFormDialog({
               {saveMutation.isPending ? '저장 중...' : '저장'}
             </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

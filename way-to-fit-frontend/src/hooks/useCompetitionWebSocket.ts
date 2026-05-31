@@ -1,14 +1,15 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { ACCESS_TOKEN_KEY } from '@/lib/constants';
+import type { EventLeaderboardResponse, OverallLeaderboardResponse } from '@/features/competition/types';
 
 interface UseCompetitionWebSocketOptions {
   competitionId: string;
   stageId?: string;
   eventId?: string;
-  onOverallLeaderboardUpdate?: (data: unknown) => void;
-  onEventLeaderboardUpdate?: (data: unknown) => void;
+  onOverallLeaderboardUpdate?: (data: OverallLeaderboardResponse) => void;
+  onEventLeaderboardUpdate?: (data: EventLeaderboardResponse) => void;
 }
 
 /**
@@ -24,7 +25,7 @@ export function useCompetitionWebSocket({
   onEventLeaderboardUpdate,
 }: UseCompetitionWebSocketOptions) {
   const clientRef = useRef<Client | null>(null);
-  const isConnectedRef = useRef(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const getToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 
@@ -41,7 +42,7 @@ export function useCompetitionWebSocket({
       },
       reconnectDelay: 5000,
       onConnect: () => {
-        isConnectedRef.current = true;
+        setIsConnected(true);
 
         if (stageId && onOverallLeaderboardUpdate) {
           client.subscribe(
@@ -70,10 +71,14 @@ export function useCompetitionWebSocket({
         }
       },
       onDisconnect: () => {
-        isConnectedRef.current = false;
+        setIsConnected(false);
       },
       onStompError: (frame) => {
+        setIsConnected(false);
         console.error('STOMP error', frame);
+      },
+      onWebSocketClose: () => {
+        setIsConnected(false);
       },
     });
 
@@ -89,5 +94,5 @@ export function useCompetitionWebSocket({
     };
   }, [connect]);
 
-  return { isConnectedRef };
+  return { isConnected };
 }
