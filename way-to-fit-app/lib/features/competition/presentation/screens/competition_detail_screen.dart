@@ -335,18 +335,30 @@ class CompetitionDetailScreen extends ConsumerWidget {
                           _InfoCard(
                             title:
                                 '${stageBundle.stage.name} · ${stageBundle.stage.stageFormat}',
-                            child: Column(
-                              children: [
-                                for (final event in stageBundle.events) ...[
-                                  _EventTile(
-                                    competitionId: competitionId,
-                                    event: event,
-                                  ),
-                                  if (event != stageBundle.events.last)
-                                    const Divider(height: 28),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (stageBundle.events.isEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Text(
+                                        '추후 공지 예정',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    for (final event in stageBundle.events) ...[
+                                      _EventTile(
+                                        competitionId: competitionId,
+                                        event: event,
+                                      ),
+                                      if (event != stageBundle.events.last)
+                                        const Divider(height: 28),
+                                    ],
                                 ],
-                              ],
-                            ),
+                              ),
                           ),
                           const SizedBox(height: 14),
                         ],
@@ -547,40 +559,44 @@ class _EventTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => context.push('/competitions/$competitionId/events/${event.id}'),
-      child: Padding(
+      child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              event.name,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${event.eventType} · ${event.gender} · ${event.scaleCategories.join('/')}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.78),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${event.wodType} · 마감 ${formatDateTime(event.submissionDeadline)}',
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              '${event.eventType} · ${event.gender} · ${event.scaleCategories.join('/')}',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.78),
-              ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${event.wodType} · 마감 ${formatDateTime(event.submissionDeadline)}',
-            ),
-            if (event.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                event.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
           ],
         ),
       ),

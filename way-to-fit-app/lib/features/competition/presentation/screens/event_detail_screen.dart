@@ -32,6 +32,12 @@ class EventDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('이벤트 상세'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.leaderboard),
+            onPressed: () => context.push('/competitions/$competitionId/leaderboard'),
+          ),
+        ],
       ),
       body: AsyncValueView(
         value: detailValue,
@@ -89,7 +95,7 @@ class EventDetailScreen extends ConsumerWidget {
               if (event.description.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Text(
-                  '상세 내용',
+                  'WOD',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -103,6 +109,27 @@ class EventDetailScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     event.description,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ],
+              if (event.rulebook.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                Text(
+                  '룰북',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    event.rulebook,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
