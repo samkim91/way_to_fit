@@ -21,7 +21,7 @@ export type RegistrationType = 'INDIVIDUAL' | 'TEAM';
 export type TeamRole = 'LEADER' | 'MEMBER';
 export type PaymentStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
-export type ScoreStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'ADJUSTED' | 'REJECTED';
+export type ScoreStatus = 'SUBMITTED' | 'APPROVED' | 'ADJUSTED' | 'REJECTED';
 export type ResultStatus = 'COMPLETED' | 'DNF';
 
 // ─── Competition ──────────────────────────────────────────────────────────────

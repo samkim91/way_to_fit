@@ -7,10 +7,6 @@ const STATUS_CONFIG: Record<ScoreStatus, { label: string; className: string }> =
     label: scoreStatusLabels.SUBMITTED,
     className: 'bg-transparent text-slate-500 border-slate-300',
   },
-  UNDER_REVIEW: {
-    label: scoreStatusLabels.UNDER_REVIEW,
-    className: 'bg-transparent text-blue-600 border-blue-300',
-  },
   APPROVED: {
     label: scoreStatusLabels.APPROVED,
     className: 'bg-green-500 text-white border-green-500',

@@ -45,7 +45,6 @@ type ReviewFormState = {
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'ALL', label: '전체' },
   { value: 'SUBMITTED', label: scoreStatusLabels.SUBMITTED },
-  { value: 'UNDER_REVIEW', label: scoreStatusLabels.UNDER_REVIEW },
   { value: 'APPROVED', label: scoreStatusLabels.APPROVED },
   { value: 'ADJUSTED', label: scoreStatusLabels.ADJUSTED },
   { value: 'REJECTED', label: scoreStatusLabels.REJECTED },
@@ -146,10 +145,12 @@ function buildReviewPayload(form: ReviewFormState): ReviewScoreRequest {
 export function ScoresTab() {
   const { competitionId } = useOutletContext<{ competitionId: string }>();
   const queryClient = useQueryClient();
-  const [selectedEventId, setSelectedEventId] = useState('');
+  const [selectedEventId, setSelectedEventId] = useState<'ALL' | string>('ALL');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(STATUS_FILTERS[0].value);
   const [activeScore, setActiveScore] = useState<CompetitionScore | null>(null);
   const [reviewForm, setReviewForm] = useState<ReviewFormState | null>(null);
+
+  const isAllMode = selectedEventId === 'ALL';
 
   const { data: stages } = useQuery({
     queryKey: ['stages', competitionId],
@@ -171,8 +172,10 @@ export function ScoresTab() {
     enabled: !!stages,
   });
 
-  const effectiveEventId = selectedEventId || events?.[0]?.id || '';
-  const selectedEvent = events?.find((event) => event.id === effectiveEventId) ?? null;
+  const eventMap = useMemo(
+    () => (events ?? []).reduce<Record<string, CompetitionEvent>>((acc, e) => { acc[e.id] = e; return acc; }, {}),
+    [events],
+  );
 
   const { data: pageData } = useQuery({
     queryKey: ['registrations', competitionId],
@@ -190,11 +193,30 @@ export function ScoresTab() {
   );
 
   const scoreStatusParam = statusFilter === 'ALL' ? undefined : statusFilter;
-  const { data: scores, isLoading: isScoresLoading } = useQuery({
-    queryKey: ['scores', competitionId, effectiveEventId, scoreStatusParam],
-    queryFn: () => scoreApi.getScoresByEvent(competitionId, effectiveEventId, scoreStatusParam),
-    enabled: !!effectiveEventId,
+
+  const { data: singleEventScores, isLoading: isSingleLoading } = useQuery({
+    queryKey: ['scores', competitionId, selectedEventId, scoreStatusParam],
+    queryFn: () => scoreApi.getScoresByEvent(competitionId, selectedEventId, scoreStatusParam),
+    enabled: !isAllMode && !!selectedEventId,
   });
+
+  const { data: allEventScores, isLoading: isAllLoading } = useQuery({
+    queryKey: ['scores-all', competitionId, scoreStatusParam, events?.map((e) => e.id).join(',')],
+    queryFn: async () => {
+      const results = await Promise.all(
+        (events ?? []).map((e) => scoreApi.getScoresByEvent(competitionId, e.id, scoreStatusParam)),
+      );
+      return results.flat();
+    },
+    enabled: isAllMode && !!events?.length,
+  });
+
+  const scores = isAllMode ? allEventScores : singleEventScores;
+  const isScoresLoading = isAllMode ? isAllLoading : isSingleLoading;
+
+  const selectedEvent = isAllMode
+    ? (activeScore ? (eventMap[activeScore.eventId] ?? null) : null)
+    : (events?.find((e) => e.id === selectedEventId) ?? null);
 
   const reviewMutation = useMutation({
     mutationFn: (payload: ReviewScoreRequest) => {
@@ -202,7 +224,8 @@ export function ScoresTab() {
       return scoreApi.reviewScore(competitionId, activeScore.eventId, activeScore.id, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scores', competitionId, effectiveEventId] });
+      queryClient.invalidateQueries({ queryKey: ['scores', competitionId] });
+      queryClient.invalidateQueries({ queryKey: ['scores-all', competitionId] });
       queryClient.invalidateQueries({ queryKey: ['leaderboard', 'overall', competitionId] });
       setActiveScore(null);
       setReviewForm(null);
@@ -238,16 +261,25 @@ export function ScoresTab() {
           {isEventsLoading ? (
             <span className="text-sm text-muted-foreground">이벤트 로딩 중...</span>
           ) : events?.length ? (
-            events.map((event) => (
+            <>
               <Button
-                key={event.id}
-                variant={effectiveEventId === event.id ? 'default' : 'outline'}
+                variant={isAllMode ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedEventId(event.id)}
+                onClick={() => setSelectedEventId('ALL')}
               >
-                {formatEventButtonLabel(event)}
+                전체
               </Button>
-            ))
+              {events.map((event) => (
+                <Button
+                  key={event.id}
+                  variant={selectedEventId === event.id ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedEventId(event.id)}
+                >
+                  {formatEventButtonLabel(event)}
+                </Button>
+              ))}
+            </>
           ) : (
             <span className="text-sm text-muted-foreground">등록된 이벤트 없음</span>
           )}
@@ -273,6 +305,7 @@ export function ScoresTab() {
         <Table>
           <TableHeader>
             <TableRow>
+              {isAllMode && <TableHead>이벤트</TableHead>}
               <TableHead>참가자</TableHead>
               <TableHead>성별</TableHead>
               <TableHead>기록</TableHead>
@@ -285,25 +318,19 @@ export function ScoresTab() {
           <TableBody>
             {!events?.length && !isEventsLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={isAllMode ? 8 : 7} className="h-32 text-center text-muted-foreground">
                   등록된 이벤트가 없습니다.
                 </TableCell>
               </TableRow>
-            ) : isEventsLoading || (isScoresLoading && !!effectiveEventId) ? (
+            ) : isEventsLoading || isScoresLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={isAllMode ? 8 : 7} className="h-32 text-center text-muted-foreground">
                   기록을 불러오는 중입니다.
-                </TableCell>
-              </TableRow>
-            ) : !effectiveEventId ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                  이벤트를 선택해주세요.
                 </TableCell>
               </TableRow>
             ) : !scores?.length ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={isAllMode ? 8 : 7} className="h-32 text-center text-muted-foreground">
                   제출된 기록이 없습니다.
                 </TableCell>
               </TableRow>
@@ -321,6 +348,11 @@ export function ScoresTab() {
 
                 return (
                   <TableRow key={score.id}>
+                    {isAllMode && (
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatEventButtonLabel(eventMap[score.eventId] ?? { order: 0, name: score.eventId.slice(0, 8) } as CompetitionEvent)}
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{participantName}</TableCell>
                     <TableCell>{gender}</TableCell>
                     <TableCell className="font-medium">{formatResult(score)}</TableCell>

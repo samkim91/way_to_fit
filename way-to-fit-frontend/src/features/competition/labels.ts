@@ -59,7 +59,6 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
 
 export const scoreStatusLabels: Record<ScoreStatus, string> = {
   SUBMITTED: '제출됨',
-  UNDER_REVIEW: '검토 중',
   APPROVED: '승인',
   ADJUSTED: '조정됨',
   REJECTED: '거절됨',
