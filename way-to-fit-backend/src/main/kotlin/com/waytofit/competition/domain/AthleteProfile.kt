@@ -1,5 +1,6 @@
 package com.waytofit.competition.domain
 
+import com.waytofit.user.domain.enums.Gender
 import java.util.UUID
 
 data class AthleteProfile(
@@ -8,4 +9,5 @@ data class AthleteProfile(
     val name: String = "",
     val biography: String? = null,
     val profileImageUrl: String? = null,
+    val gender: Gender? = null,
 )

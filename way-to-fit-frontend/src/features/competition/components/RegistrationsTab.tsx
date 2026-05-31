@@ -42,6 +42,7 @@ export function RegistrationsTab() {
             <TableRow>
               <TableHead>이름/팀명</TableHead>
               <TableHead>타입</TableHead>
+              <TableHead>성별</TableHead>
               <TableHead>스케일</TableHead>
               <TableHead>상태</TableHead>
               <TableHead className="text-right">액션</TableHead>
@@ -49,9 +50,9 @@ export function RegistrationsTab() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={5} className="text-center">로딩 중...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center">로딩 중...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center">신청 내역이 없습니다.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center">신청 내역이 없습니다.</TableCell></TableRow>
             ) : (
               filtered.map(reg => (
                 <TableRow key={reg.id}>
@@ -59,6 +60,7 @@ export function RegistrationsTab() {
                     {reg.registrationType === 'TEAM' ? reg.teamName : (reg.athleteName ?? reg.userId.substring(0, 8))}
                   </TableCell>
                   <TableCell>{reg.registrationType === 'TEAM' ? '팀전' : '개인전'}</TableCell>
+                  <TableCell>{reg.gender === 'MALE' ? '남성' : reg.gender === 'FEMALE' ? '여성' : '-'}</TableCell>
                   <TableCell>{reg.scaleCategory}</TableCell>
                   <TableCell><RegistrationStatusBadge status={reg.paymentStatus} /></TableCell>
                   <TableCell className="text-right">

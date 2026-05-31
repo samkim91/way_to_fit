@@ -63,6 +63,7 @@ class _FakeCompetitionRepository extends CompetitionRepository {
   Future<AthleteProfile> updateAthleteProfile({
     String? biography,
     String? profileImageUrl,
+    String? gender,
   }) {
     throw UnimplementedError();
   }

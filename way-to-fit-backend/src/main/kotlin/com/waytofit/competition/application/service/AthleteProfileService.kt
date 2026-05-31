@@ -32,7 +32,7 @@ class AthleteProfileService(
         val profile = athleteProfileRepository.findByUserId(userId)
             ?: throw BusinessException(ResponseCode.NOT_FOUND, "선수 프로필을 찾을 수 없습니다.")
         val user = userPersistencePort.findById(userId)
-        return profile.copy(name = user?.name ?: "")
+        return profile.copy(name = user?.name ?: "", gender = user?.gender)
     }
 
     override fun updateAthleteProfile(userId: UUID, command: UpdateAthleteProfileCommand): AthleteProfile {
@@ -41,12 +41,18 @@ class AthleteProfileService(
 
         val updatedProfile = profile.copy(
             biography = command.biography,
-            profileImageUrl = command.profileImageUrl
+            profileImageUrl = command.profileImageUrl,
         )
-
         val saved = athleteProfileRepository.save(updatedProfile)
+
         val user = userPersistencePort.findById(userId)
-        return saved.copy(name = user?.name ?: "")
+            ?: throw BusinessException(ResponseCode.USER_NOT_FOUND)
+        val savedUser = if (command.gender != null && command.gender != user.gender) {
+            userPersistencePort.save(user.copy(gender = command.gender))
+        } else {
+            user
+        }
+        return saved.copy(name = savedUser.name, gender = savedUser.gender)
     }
 
     override fun createProfileIfNotExists(userId: UUID) {

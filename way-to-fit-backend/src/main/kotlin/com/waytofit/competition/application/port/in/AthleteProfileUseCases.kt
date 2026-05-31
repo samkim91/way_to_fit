@@ -1,6 +1,7 @@
 package com.waytofit.competition.application.port.`in`
 
 import com.waytofit.competition.domain.AthleteProfile
+import com.waytofit.user.domain.enums.Gender
 import java.util.UUID
 
 interface GetAthleteProfileUseCase {
@@ -18,4 +19,5 @@ interface CreateAthleteProfileUseCase {
 data class UpdateAthleteProfileCommand(
     val biography: String?,
     val profileImageUrl: String?,
+    val gender: Gender? = null,
 )

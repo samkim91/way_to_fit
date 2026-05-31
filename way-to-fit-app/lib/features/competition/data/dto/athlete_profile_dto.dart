@@ -39,6 +39,7 @@ class AthleteProfileResponseDto {
     required this.name,
     required this.biography,
     required this.profileImageUrl,
+    required this.gender,
   });
 
   final String? id;
@@ -46,6 +47,7 @@ class AthleteProfileResponseDto {
   final String name;
   final String? biography;
   final String? profileImageUrl;
+  final String? gender;
 
   factory AthleteProfileResponseDto.fromJson(Map<String, dynamic> json) =>
       _$AthleteProfileResponseDtoFromJson(json);
@@ -57,6 +59,7 @@ class AthleteProfileResponseDto {
     name: name,
     biography: biography,
     profileImageUrl: profileImageUrl,
+    gender: gender,
   );
 }
 
@@ -65,10 +68,12 @@ class UpdateAthleteProfileRequestDto {
   const UpdateAthleteProfileRequestDto({
     required this.biography,
     required this.profileImageUrl,
+    required this.gender,
   });
 
   final String? biography;
   final String? profileImageUrl;
+  final String? gender;
 
   factory UpdateAthleteProfileRequestDto.fromJson(Map<String, dynamic> json) =>
       _$UpdateAthleteProfileRequestDtoFromJson(json);

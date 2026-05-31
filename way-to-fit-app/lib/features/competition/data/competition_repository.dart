@@ -83,6 +83,7 @@ abstract class CompetitionRepository {
   Future<AthleteProfile> updateAthleteProfile({
     String? biography,
     String? profileImageUrl,
+    String? gender,
   });
   Future<List<CompetitionHistoryItem>> getAthleteHistory(String userId);
   Future<EventLineup> setEventLineup(
@@ -303,11 +304,13 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   Future<AthleteProfile> updateAthleteProfile({
     String? biography,
     String? profileImageUrl,
+    String? gender,
   }) async {
     final response = await _service.updateAthleteProfile(
       UpdateAthleteProfileRequestDto(
         biography: biography,
         profileImageUrl: profileImageUrl,
+        gender: gender,
       ),
     );
     return _requireData<AthleteProfileResponseDto>(response).toDomain();

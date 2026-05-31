@@ -22,6 +22,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   final _biographyController = TextEditingController();
   final _profileImageUrlController = TextEditingController();
   String? _loadedUserId;
+  String? _selectedGender;
   bool _saving = false;
   bool _loggingOut = false;
 
@@ -81,6 +82,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       final updated = await repository.updateAthleteProfile(
         biography: biography.isEmpty ? null : biography,
         profileImageUrl: profileImageUrl.isEmpty ? null : profileImageUrl,
+        gender: _selectedGender,
       );
 
       ref.invalidate(myProfileProvider);
@@ -149,6 +151,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
               _loadedUserId = profile.userId;
               _biographyController.text = profile.biography ?? '';
               _profileImageUrlController.text = profile.profileImageUrl ?? '';
+              _selectedGender = profile.gender;
             }
 
             final history = bundle.history;
@@ -192,6 +195,11 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  _GenderSelector(
+                    value: _selectedGender,
+                    onChanged: (v) => setState(() => _selectedGender = v),
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _profileImageUrlController,
                     decoration: const InputDecoration(
@@ -525,6 +533,29 @@ class _HistorySection extends StatelessWidget {
             const SizedBox(height: 12),
           ],
       ],
+    );
+  }
+}
+
+class _GenderSelector extends StatelessWidget {
+  const _GenderSelector({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      key: ValueKey(value),
+      initialValue: value,
+      decoration: const InputDecoration(labelText: '성별'),
+      items: const [
+        DropdownMenuItem(value: null, child: Text('선택 안 함')),
+        DropdownMenuItem(value: 'MALE', child: Text('남성')),
+        DropdownMenuItem(value: 'FEMALE', child: Text('여성')),
+        DropdownMenuItem(value: 'UNKNOWN', child: Text('공개 안 함')),
+      ],
+      onChanged: onChanged,
     );
   }
 }

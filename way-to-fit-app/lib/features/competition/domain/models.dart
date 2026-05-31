@@ -281,12 +281,14 @@ class AthleteProfile {
     required this.name,
     required this.biography,
     required this.profileImageUrl,
+    required this.gender,
   });
 
   final String userId;
   final String name;
   final String? biography;
   final String? profileImageUrl;
+  final String? gender;
 }
 
 class CompetitionHistoryItem {

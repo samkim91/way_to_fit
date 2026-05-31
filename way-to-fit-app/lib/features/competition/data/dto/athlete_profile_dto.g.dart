@@ -32,6 +32,7 @@ AthleteProfileResponseDto _$AthleteProfileResponseDtoFromJson(
   name: json['name'] as String,
   biography: json['biography'] as String?,
   profileImageUrl: json['profileImageUrl'] as String?,
+  gender: json['gender'] as String?,
 );
 
 Map<String, dynamic> _$AthleteProfileResponseDtoToJson(
@@ -42,6 +43,7 @@ Map<String, dynamic> _$AthleteProfileResponseDtoToJson(
   'name': instance.name,
   'biography': instance.biography,
   'profileImageUrl': instance.profileImageUrl,
+  'gender': instance.gender,
 };
 
 UpdateAthleteProfileRequestDto _$UpdateAthleteProfileRequestDtoFromJson(
@@ -49,6 +51,7 @@ UpdateAthleteProfileRequestDto _$UpdateAthleteProfileRequestDtoFromJson(
 ) => UpdateAthleteProfileRequestDto(
   biography: json['biography'] as String?,
   profileImageUrl: json['profileImageUrl'] as String?,
+  gender: json['gender'] as String?,
 );
 
 Map<String, dynamic> _$UpdateAthleteProfileRequestDtoToJson(
@@ -56,6 +59,7 @@ Map<String, dynamic> _$UpdateAthleteProfileRequestDtoToJson(
 ) => <String, dynamic>{
   'biography': instance.biography,
   'profileImageUrl': instance.profileImageUrl,
+  'gender': instance.gender,
 };
 
 AthleteCompetitionHistoryResponseDto

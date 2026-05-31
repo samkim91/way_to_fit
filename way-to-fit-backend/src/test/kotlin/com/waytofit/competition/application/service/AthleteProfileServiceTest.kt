@@ -4,6 +4,10 @@ import com.waytofit.competition.application.port.`in`.UpdateAthleteProfileComman
 import com.waytofit.competition.application.port.out.*
 import com.waytofit.competition.domain.AthleteProfile
 import com.waytofit.global.error.BusinessException
+import com.waytofit.user.domain.User
+import com.waytofit.user.domain.enums.Gender
+import com.waytofit.user.domain.enums.OAuthProvider
+import com.waytofit.user.domain.enums.UserRole
 import com.waytofit.user.application.port.out.UserPersistencePort
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -58,15 +62,60 @@ class AthleteProfileServiceTest {
     fun `updateAthleteProfile updates biography and profile image`() {
         val userId = UUID.randomUUID()
         val existingProfile = AthleteProfile(id = UUID.randomUUID(), userId = userId)
+        val existingUser = User(
+            id = userId,
+            oauthProvider = OAuthProvider.GOOGLE,
+            oauthId = "oauth-athlete",
+            email = "athlete@test.com",
+            name = "Athlete",
+            phone = null,
+            gender = Gender.MALE,
+            role = UserRole.USER,
+        )
         val command = UpdateAthleteProfileCommand(biography = "CrossFit Lover", profileImageUrl = "http://image.url")
 
         `when`(athleteProfileRepository.findByUserId(userId)).thenReturn(existingProfile)
         `when`(athleteProfileRepository.save(any(AthleteProfile::class.java))).thenAnswer { it.arguments[0] }
+        `when`(userPersistencePort.findById(userId)).thenReturn(existingUser)
 
         val result = athleteProfileService.updateAthleteProfile(userId, command)
 
         assertEquals("CrossFit Lover", result.biography)
         assertEquals("http://image.url", result.profileImageUrl)
+        assertEquals("Athlete", result.name)
+        assertEquals(Gender.MALE, result.gender)
+    }
+
+    @Test
+    fun `updateAthleteProfile updates gender through user persistence`() {
+        val userId = UUID.randomUUID()
+        val existingProfile = AthleteProfile(id = UUID.randomUUID(), userId = userId)
+        val existingUser = User(
+            id = userId,
+            oauthProvider = OAuthProvider.GOOGLE,
+            oauthId = "oauth-athlete",
+            email = "athlete@test.com",
+            name = "Athlete",
+            phone = null,
+            gender = Gender.MALE,
+            role = UserRole.USER,
+        )
+        val updatedUser = existingUser.copy(gender = Gender.FEMALE)
+        val command = UpdateAthleteProfileCommand(
+            biography = null,
+            profileImageUrl = null,
+            gender = Gender.FEMALE,
+        )
+
+        `when`(athleteProfileRepository.findByUserId(userId)).thenReturn(existingProfile)
+        `when`(athleteProfileRepository.save(any(AthleteProfile::class.java))).thenAnswer { it.arguments[0] }
+        `when`(userPersistencePort.findById(userId)).thenReturn(existingUser)
+        `when`(userPersistencePort.save(any(User::class.java))).thenReturn(updatedUser)
+
+        val result = athleteProfileService.updateAthleteProfile(userId, command)
+
+        assertEquals(Gender.FEMALE, result.gender)
+        verify(userPersistencePort).save(existingUser.copy(gender = Gender.FEMALE))
     }
 
     @Test
