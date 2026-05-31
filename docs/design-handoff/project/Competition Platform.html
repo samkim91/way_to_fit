@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Way To Fit — Competition Platform Design</title>
+<style>
+@font-face {
+  font-family: 'Geist Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+}
+@font-face {
+  font-family: 'Geist Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist-mono:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  font-family: 'Geist Variable', system-ui, sans-serif;
+  background: #0F172A;
+}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div id="root" style="width:100%;height:100%;"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="admin-screens.jsx"></script>
+<script type="text/babel" src="app-screens.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "dark": false,
+  "compStatus": "REGISTRATION_CLOSED"
+}/*EDITMODE-END*/;
+
+function MainCanvas() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const dark = tweaks.dark;
+  const compStatus = tweaks.compStatus;
+
+  const STATUS_OPTIONS = [
+    "DRAFT",
+    "PUBLISHED",
+    "REGISTRATION_OPEN",
+    "REGISTRATION_CLOSED",
+    "IN_PROGRESS",
+    "COMPLETED",
+  ];
+
+  const canvasBg = dark ? '#0F172A' : '#E8EDF5';
+
+  const adminScreens = [
+    { id: 'competitions', label: '대회 목록' },
+    { id: 'edit',          label: '대회 생성/편집' },
+    { id: 'detail',        label: '대회 상세 (Stage/Event)' },
+    { id: 'registrations', label: '신청 관리' },
+    { id: 'scores',        label: '기록 판독' },
+    { id: 'leaderboard',   label: '리더보드 프로젝션' },
+  ];
+
+  const appScreens = [
+    { id: 'competitionList',   label: '대회 목록' },
+    { id: 'competitionDetail', label: '대회 상세' },
+    { id: 'registration',      label: '참가 신청' },
+    { id: 'scoreSubmit',       label: '기록 제출' },
+    { id: 'leaderboard',       label: '리더보드' },
+    { id: 'athleteProfile',    label: '선수 프로필' },
+  ];
+
+  return (
+    <div style={{ width: '100%', height: '100%', background: canvasBg }}>
+      <DesignCanvas background={canvasBg}>
+
+        {/* ── SECTION: 웹 어드민 ── */}
+        <DCSection id="admin" title="웹 어드민 — 주최자 화면">
+
+          {adminScreens.map(sc => (
+            <DCArtboard
+              key={sc.id}
+              id={`admin-${sc.id}`}
+              label={sc.label}
+              width={1100}
+              height={700}
+            >
+              <AdminShell screen={sc.id} dark={dark} compStatus={compStatus} />
+            </DCArtboard>
+          ))}
+
+        </DCSection>
+
+        {/* ── SECTION: Flutter 앱 ── */}
+        <DCSection id="app" title="Flutter 앱 — 참가자 / 관중 화면">
+
+          {appScreens.map(sc => (
+            <DCArtboard
+              key={sc.id}
+              id={`app-${sc.id}`}
+              label={sc.label}
+              width={370}
+              height={740}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: dark ? '#0F172A' : '#E8EDF5' }}>
+                <PhoneShell screen={sc.id} dark={dark} compStatus={compStatus} />
+              </div>
+            </DCArtboard>
+          ))}
+
+        </DCSection>
+
+      </DesignCanvas>
+
+      {/* Tweaks Panel */}
+      <TweaksPanel>
+        <TweakSection label="테마" />
+        <TweakToggle
+          label="다크 모드"
+          value={dark}
+          onChange={(v) => setTweak('dark', v)}
+        />
+        <TweakSection label="대회 상태 배지" />
+        <TweakSelect
+          label="Competition Status"
+          value={compStatus}
+          options={STATUS_OPTIONS}
+          onChange={(v) => setTweak('compStatus', v)}
+        />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<MainCanvas />);
+</script>
+</body>
+</html>
