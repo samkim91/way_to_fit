@@ -47,6 +47,13 @@ abstract class CompetitionApiService {
     @Body() RegisterIndividualRequestDto body,
   );
 
+  @GET('/api/competitions/{competitionId}/events/{eventId}/scores/{registrationId}')
+  Future<ApiResponseDto<ScoreResponseDto>> getScore(
+    @Path('competitionId') String competitionId,
+    @Path('eventId') String eventId,
+    @Path('registrationId') String registrationId,
+  );
+
   @POST('/api/competitions/{competitionId}/events/{eventId}/scores')
   Future<HttpResponse<dynamic>> submitScore(
     @Path('competitionId') String competitionId,

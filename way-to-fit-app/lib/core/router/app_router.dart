@@ -32,8 +32,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoginRoute = state.matchedLocation == '/login';
       final isMyProfileRoute = state.matchedLocation == '/me';
 
-      if (!isAuthenticated && isMyProfileRoute) return '/login';
-      if (isAuthenticated && isLoginRoute) return '/competitions';
+      if (!isAuthenticated && isMyProfileRoute) {
+        final from = Uri.encodeComponent(state.uri.toString());
+        return '/login?from=$from';
+      }
+      if (isAuthenticated && isLoginRoute) {
+        final from = state.uri.queryParameters['from'];
+        if (from != null && from.isNotEmpty) {
+          return Uri.decodeComponent(from);
+        }
+        return '/competitions';
+      }
       return null;
     },
     routes: [
@@ -46,58 +55,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/competitions',
                 builder: (context, state) => const CompetitionListScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':competitionId',
-                    builder: (_, state) => CompetitionDetailScreen(
-                      competitionId: state.pathParameters['competitionId']!,
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: 'leaderboard',
-                        builder: (_, state) => LeaderboardScreen(
-                          competitionId: state.pathParameters['competitionId']!,
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'register/individual',
-                        builder: (_, state) => IndividualRegScreen(
-                          competitionId: state.pathParameters['competitionId']!,
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'register/team',
-                        builder: (_, state) => TeamRegScreen(
-                          competitionId: state.pathParameters['competitionId']!,
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'submit-score',
-                        builder: (_, state) => ScoreSubmitScreen(
-                          competitionId: state.pathParameters['competitionId']!,
-                          eventId: state.uri.queryParameters['eventId'] ?? '',
-                          registrationId:
-                              state.uri.queryParameters['registrationId'] ?? '',
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'lineup',
-                        builder: (_, state) {
-                          final members =
-                              (state.extra as List<TeamMember>?) ?? const [];
-                          return EventLineupScreen(
-                            competitionId:
-                                state.pathParameters['competitionId']!,
-                            registrationId:
-                                state.uri.queryParameters['registrationId'] ??
-                                '',
-                            members: members,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ],
           ),
@@ -108,6 +65,54 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const MyProfileScreen(),
               ),
             ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/competitions/:competitionId',
+        builder: (_, state) => CompetitionDetailScreen(
+          competitionId: state.pathParameters['competitionId']!,
+        ),
+        routes: [
+          GoRoute(
+            path: 'leaderboard',
+            builder: (_, state) => LeaderboardScreen(
+              competitionId: state.pathParameters['competitionId']!,
+            ),
+          ),
+          GoRoute(
+            path: 'register/individual',
+            builder: (_, state) => IndividualRegScreen(
+              competitionId: state.pathParameters['competitionId']!,
+            ),
+          ),
+          GoRoute(
+            path: 'register/team',
+            builder: (_, state) => TeamRegScreen(
+              competitionId: state.pathParameters['competitionId']!,
+            ),
+          ),
+          GoRoute(
+            path: 'submit-score',
+            builder: (_, state) => ScoreSubmitScreen(
+              competitionId: state.pathParameters['competitionId']!,
+              eventId: state.uri.queryParameters['eventId'] ?? '',
+              registrationId:
+                  state.uri.queryParameters['registrationId'] ?? '',
+            ),
+          ),
+          GoRoute(
+            path: 'lineup',
+            builder: (_, state) {
+              final members =
+                  (state.extra as List<TeamMember>?) ?? const [];
+              return EventLineupScreen(
+                competitionId: state.pathParameters['competitionId']!,
+                registrationId:
+                    state.uri.queryParameters['registrationId'] ?? '',
+                members: members,
+              );
+            },
           ),
         ],
       ),

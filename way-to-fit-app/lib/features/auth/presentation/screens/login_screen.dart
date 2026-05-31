@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/auth/auth_session.dart';
@@ -15,11 +16,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _loading = false;
 
   Future<void> _loginWithGoogle() async {
+    final routerState = GoRouterState.of(context);
+    final from = routerState.uri.queryParameters['from'];
+
     setState(() => _loading = true);
     try {
       final dio = ref.read(dioProvider);
       final baseUrl = ref.read(apiBaseUrlProvider);
       await ref.read(authControllerProvider.notifier).loginWithGoogle(dio, baseUrl);
+      if (mounted) {
+        if (from != null && from.isNotEmpty) {
+          context.go(Uri.decodeComponent(from));
+        } else {
+          context.go('/competitions');
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -34,6 +45,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '뒤로가기',
+          onPressed: () {
+            context.go('/competitions');
+          },
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Center(
           child: Padding(

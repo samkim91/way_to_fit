@@ -72,6 +72,14 @@ enum ScoreStatus {
       _ => submitted,
     };
   }
+
+  String get label => switch (this) {
+    submitted => '제출됨',
+    underReview => '검토 중',
+    approved => '승인',
+    adjusted => '조정됨',
+    rejected => '거절됨',
+  };
 }
 
 class Competition {
@@ -323,16 +331,44 @@ class EventScoreItem {
   final String? resultCustom;
 }
 
+class MyEventScore {
+  MyEventScore({
+    required this.id,
+    required this.eventId,
+    required this.registrationId,
+    required this.status,
+    required this.isDnf,
+    this.resultTimeSeconds,
+    this.resultRounds,
+    this.resultReps,
+    this.resultWeight,
+    this.resultCustom,
+  });
+
+  final String id;
+  final String eventId;
+  final String registrationId;
+  final ScoreStatus status;
+  final bool isDnf;
+  final int? resultTimeSeconds;
+  final int? resultRounds;
+  final int? resultReps;
+  final num? resultWeight;
+  final String? resultCustom;
+}
+
 class CompetitionDetailBundle {
   CompetitionDetailBundle({
     required this.competition,
     required this.stages,
     this.myRegistrations = const [],
+    this.myScores = const {},
   });
 
   final Competition competition;
   final List<CompetitionStageBundle> stages;
   final List<Registration> myRegistrations;
+  final Map<String, MyEventScore> myScores;
 }
 
 class AthleteSearchResult {

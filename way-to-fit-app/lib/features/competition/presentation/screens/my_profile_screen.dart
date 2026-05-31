@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/auth/auth_session.dart';
 import '../../../../core/utils/formatters.dart';
@@ -21,12 +23,55 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   final _profileImageUrlController = TextEditingController();
   String? _loadedUserId;
   bool _saving = false;
+  bool _loggingOut = false;
 
   @override
   void dispose() {
     _biographyController.dispose();
     _profileImageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showLogoutDialog(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃 하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    if (!mounted) return;
+    setState(() => _loggingOut = true);
+
+    try {
+      final dio = ref.read(dioProvider);
+      await ref.read(authControllerProvider.notifier).logout(dio);
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loggingOut = false);
+      }
+    }
   }
 
   Future<void> _save() async {
@@ -60,12 +105,39 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider).valueOrNull;
+    final authValue = ref.watch(authControllerProvider);
+    final authState = authValue.valueOrNull;
+    final isAuthenticated = authState?.isAuthenticated ?? false;
+
+    if (!authValue.isLoading && !isAuthenticated) {
+      return _LoginPromptView();
+    }
+
     final userId = authState?.userId;
     final value = ref.watch(myProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('내 프로필')),
+      appBar: AppBar(
+        title: const Text('내 프로필'),
+        actions: [
+          IconButton(
+            icon: _loggingOut
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.logout),
+            tooltip: '로그아웃',
+            onPressed: _loggingOut || _saving
+                ? null
+                : () => _showLogoutDialog(context),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: AsyncValueView(
           value: value,
@@ -121,6 +193,49 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginPromptView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('내 프로필')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.person_outline, size: 64, color: Colors.white38),
+              const SizedBox(height: 24),
+              Text(
+                '로그인이 필요합니다',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '프로필을 확인하려면 로그인하세요.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white54,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => context.push('/login'),
+                  icon: const Icon(Icons.login),
+                  label: const Text('로그인하기'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

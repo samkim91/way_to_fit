@@ -49,6 +49,11 @@ abstract class CompetitionRepository {
     required String scaleCategory,
     String? paymentNote,
   });
+  Future<MyEventScore?> getScore(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  );
   Future<void> submitScore(
     String competitionId, {
     required String eventId,
@@ -187,6 +192,34 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       ),
     );
     return _requireData<RegistrationResponseDto>(response).toDomain();
+  }
+
+  @override
+  Future<MyEventScore?> getScore(
+    String competitionId,
+    String eventId,
+    String registrationId,
+  ) async {
+    try {
+      final response = await _service.getScore(competitionId, eventId, registrationId);
+      final dto = response.data;
+      if (dto == null) return null;
+      return MyEventScore(
+        id: dto.id,
+        eventId: dto.eventId,
+        registrationId: dto.registrationId,
+        status: ScoreStatus.fromJson(dto.status),
+        isDnf: dto.resultStatus == 'DNF',
+        resultTimeSeconds: dto.resultTimeSeconds,
+        resultRounds: dto.resultRounds,
+        resultReps: dto.resultReps,
+        resultWeight: dto.resultWeight,
+        resultCustom: dto.resultCustom,
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
 
   @override

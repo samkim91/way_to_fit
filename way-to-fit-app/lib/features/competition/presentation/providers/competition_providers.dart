@@ -11,6 +11,19 @@ final competitionListProvider = FutureProvider.autoDispose<List<Competition>>((
   return repository.getCompetitions();
 });
 
+Registration? _matchRegistration(
+  List<Registration> registrations,
+  String eventType,
+) {
+  final type = eventType == 'TEAM'
+      ? RegistrationType.team
+      : RegistrationType.individual;
+  for (final r in registrations) {
+    if (r.registrationType == type) return r;
+  }
+  return null;
+}
+
 final competitionDetailProvider = FutureProvider.autoDispose
     .family<CompetitionDetailBundle, String>((ref, competitionId) async {
       final repository = ref.watch(competitionRepositoryProvider);
@@ -29,10 +42,32 @@ final competitionDetailProvider = FutureProvider.autoDispose
         myRegistrations = await repository.getMyRegistrations(competitionId);
       }
 
+      final myScores = <String, MyEventScore>{};
+      if (myRegistrations.isNotEmpty) {
+        final futures = <MapEntry<String, Future<MyEventScore?>>>[];
+        for (final bundle in stageBundles) {
+          for (final event in bundle.events) {
+            final reg = _matchRegistration(myRegistrations, event.eventType);
+            if (reg != null && reg.paymentStatus == PaymentStatus.confirmed) {
+              futures.add(MapEntry(
+                event.id,
+                repository.getScore(competitionId, event.id, reg.id),
+              ));
+            }
+          }
+        }
+        final results = await Future.wait(futures.map((e) => e.value));
+        for (var i = 0; i < futures.length; i++) {
+          final score = results[i];
+          if (score != null) myScores[futures[i].key] = score;
+        }
+      }
+
       return CompetitionDetailBundle(
         competition: competition,
         stages: stageBundles,
         myRegistrations: myRegistrations,
+        myScores: myScores,
       );
     });
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { leaderboardApi, stageApi } from '@/features/competition/api';
+import { CompetitionEvent } from '@/features/competition/types';
+import { leaderboardApi, stageApi, eventApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +33,12 @@ export function LeaderboardTab() {
     enabled: !!selectedStageId,
   });
 
+  const { data: events } = useQuery({
+    queryKey: ['events', competitionId, selectedStageId],
+    queryFn: () => eventApi.getEvents(competitionId, selectedStageId),
+    enabled: !!selectedStageId,
+  });
+
   const { isConnectedRef } = useCompetitionWebSocket({
     competitionId,
     stageId: selectedStageId,
@@ -49,10 +56,11 @@ export function LeaderboardTab() {
 
   const leaderboard = wsData || initialLeaderboard;
 
-  const allScaleCategories = useMemo(
-    () => Array.from(new Set((leaderboard?.entries ?? []).map((e: any) => e.scaleCategory as string))).sort() as string[],
-    [leaderboard],
-  );
+  const allScaleCategories = useMemo(() => {
+    if (!events) return [];
+    const categories = events.flatMap((event: CompetitionEvent) => event.scaleCategories || []);
+    return Array.from(new Set(categories)).sort();
+  }, [events]);
 
   const displayEntries = useMemo(
     () => scaleCategory === 'ALL'

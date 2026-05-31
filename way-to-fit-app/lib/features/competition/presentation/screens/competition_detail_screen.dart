@@ -9,6 +9,21 @@ import '../../domain/models.dart';
 import '../providers/competition_providers.dart';
 import '../widgets/competition_status_badge.dart';
 
+CompetitionEvent? _firstEventForReg(
+  List<CompetitionStageBundle> stages,
+  Registration reg,
+) {
+  for (final stageBundle in stages) {
+    for (final event in stageBundle.events) {
+      final type = event.eventType == 'TEAM'
+          ? RegistrationType.team
+          : RegistrationType.individual;
+      if (type == reg.registrationType) return event;
+    }
+  }
+  return null;
+}
+
 class CompetitionDetailScreen extends ConsumerWidget {
   const CompetitionDetailScreen({super.key, required this.competitionId});
 
@@ -101,19 +116,51 @@ class CompetitionDetailScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: _InfoCard(
                       title: '나의 참가 상태 · ${reg.registrationType.label}',
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${reg.scaleCategory}${reg.teamName != null ? ' · ${reg.teamName}' : ''}'),
-                          Text(
-                            reg.paymentStatus.label,
-                            style: TextStyle(
-                              color: reg.paymentStatus == PaymentStatus.confirmed
-                                  ? const Color(0xFF4CAF50)
-                                  : const Color(0xFFFFC107),
-                              fontWeight: FontWeight.w700,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${reg.scaleCategory}${reg.teamName != null ? ' · ${reg.teamName}' : ''}'),
+                              Text(
+                                reg.paymentStatus.label,
+                                style: TextStyle(
+                                  color: reg.paymentStatus == PaymentStatus.confirmed
+                                      ? const Color(0xFF4CAF50)
+                                      : const Color(0xFFFFC107),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
+                          if (reg.paymentStatus == PaymentStatus.confirmed) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed: () {
+                                      final event = _firstEventForReg(bundle.stages, reg);
+                                      if (event != null) {
+                                        context.push(
+                                          '/competitions/$competitionId/submit-score?eventId=${event.id}&registrationId=${reg.id}',
+                                        );
+                                      }
+                                    },
+                                    child: const Text('기록 제출하기'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () => _showRegistrationDetail(context, reg),
+                                    child: const Text('신청 내역 보기'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -158,6 +205,7 @@ class CompetitionDetailScreen extends ConsumerWidget {
                             competitionId: competitionId,
                             event: event,
                             registration: _findRegistration(bundle.myRegistrations, event.eventType),
+                            myScore: bundle.myScores[event.id],
                           ),
                           if (event != stageBundle.events.last)
                             const Divider(height: 28),
@@ -243,19 +291,97 @@ class _ActionRow extends StatelessWidget {
   }
 }
 
+void _showRegistrationDetail(BuildContext context, Registration reg) {
+  showModalBottomSheet<void>(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '신청 내역',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _DetailRow(label: '참가 유형', value: reg.registrationType.label),
+          _DetailRow(label: '스케일', value: reg.scaleCategory),
+          _DetailRow(label: '결제 상태', value: reg.paymentStatus.label),
+          if (reg.paymentNote != null && reg.paymentNote!.isNotEmpty)
+            _DetailRow(label: '입금자명', value: reg.paymentNote!),
+          if (reg.teamName != null)
+            _DetailRow(label: '팀명', value: reg.teamName!),
+          if (reg.members.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              '팀원',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white54,
+              ),
+            ),
+            const SizedBox(height: 4),
+            for (final m in reg.members)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(m.name ?? m.userId),
+              ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white54,
+              ),
+            ),
+          ),
+          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
+        ],
+      ),
+    );
+  }
+}
+
 class _EventTile extends StatelessWidget {
   const _EventTile({
     required this.competitionId,
     required this.event,
     required this.registration,
+    this.myScore,
   });
 
   final String competitionId;
   final CompetitionEvent event;
   final Registration? registration;
+  final MyEventScore? myScore;
 
   @override
   Widget build(BuildContext context) {
+    final score = myScore;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,7 +412,9 @@ class _EventTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (registration != null &&
+            if (score != null)
+              _ScoreChip(score: score)
+            else if (registration != null &&
                 registration!.paymentStatus == PaymentStatus.confirmed)
               OutlinedButton(
                 onPressed: () => context.push(
@@ -300,6 +428,56 @@ class _EventTile extends StatelessWidget {
           const SizedBox(height: 8),
           Text(event.description),
         ],
+      ],
+    );
+  }
+}
+
+class _ScoreChip extends StatelessWidget {
+  const _ScoreChip({required this.score});
+
+  final MyEventScore score;
+
+  static const _statusColors = {
+    ScoreStatus.submitted:   (bg: Color(0xFFF1F5F9), fg: Color(0xFF64748B)),
+    ScoreStatus.underReview: (bg: Color(0xFFDBEAFE), fg: Color(0xFF1E40AF)),
+    ScoreStatus.approved:    (bg: Color(0xFFDCFCE7), fg: Color(0xFF166534)),
+    ScoreStatus.adjusted:    (bg: Color(0xFFFEF3C7), fg: Color(0xFF92400E)),
+    ScoreStatus.rejected:    (bg: Color(0xFFFEE2E2), fg: Color(0xFF991B1B)),
+  };
+
+  String get _scoreLabel {
+    if (score.isDnf) return 'DNF';
+    if (score.resultCustom != null) return score.resultCustom!;
+    return formatTimeSeconds(score.resultTimeSeconds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _statusColors[score.status]!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          _scoreLabel,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: colors.bg,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            score.status.label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: colors.fg,
+            ),
+          ),
+        ),
       ],
     );
   }
