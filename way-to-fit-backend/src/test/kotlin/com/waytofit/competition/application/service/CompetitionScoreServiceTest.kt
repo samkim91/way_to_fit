@@ -41,7 +41,7 @@ class CompetitionScoreServiceTest {
         val eventId = UUID.randomUUID()
         val regId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        val command = SubmitScoreCommand(eventId, regId, ResultStatus.COMPLETED, 300, null, null, null, null, "https://youtube.com/watch?v=123")
+        val command = SubmitScoreCommand(eventId, regId, ResultStatus.COMPLETED, 300, null, null, null, null, "https://vimeo.com/123456")
         
         val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL, 
             gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(), 
@@ -60,7 +60,32 @@ class CompetitionScoreServiceTest {
 
         assertEquals(eventId, result.eventId)
         assertEquals(regId, result.registrationId)
-        assertEquals("https://youtube.com/watch?v=123", result.videoUrl)
+        assertEquals("https://vimeo.com/123456", result.videoUrl)
+    }
+
+    @Test
+    fun `submitScore rejects invalid video url`() {
+        val competitionId = UUID.randomUUID()
+        val stageId = UUID.randomUUID()
+        val eventId = UUID.randomUUID()
+        val regId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+        val command = SubmitScoreCommand(eventId, regId, ResultStatus.COMPLETED, 300, null, null, null, null, "not-a-url")
+
+        val event = CompetitionEvent(id = eventId, stageId = stageId, competitionId = competitionId, name = "E", description = "D", eventType = EventType.INDIVIDUAL,
+            gender = GenderCategory.MEN, wodType = WodType.FOR_TIME, order = 1, scaleCategories = emptyList(),
+            submissionDeadline = Instant.now().plusSeconds(3600))
+        val registration = CompetitionRegistration(id = regId, competitionId = competitionId, userId = userId, registrationType = RegistrationType.INDIVIDUAL,
+            gender = Gender.MALE, scaleCategory = "RXD", paymentStatus = PaymentStatus.CONFIRMED)
+        val members = listOf(CompetitionTeamMember(id = UUID.randomUUID(), registrationId = regId, userId = userId, gender = Gender.MALE, teamRole = TeamRole.LEADER))
+
+        `when`(eventRepository.findById(eventId)).thenReturn(event)
+        `when`(registrationRepository.findById(regId)).thenReturn(registration)
+        `when`(teamMemberRepository.findByRegistrationId(regId)).thenReturn(members)
+
+        assertThrows(BusinessException::class.java) {
+            scoreService.submitScore(command, userId)
+        }
     }
 
 

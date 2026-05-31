@@ -26,7 +26,7 @@ class ScoreSubmitScreen extends ConsumerStatefulWidget {
 
 class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
   final _videoUrlController = TextEditingController();
-  
+
   // WOD 타입별 입력 컨트롤러
   final _minutesController = TextEditingController();
   final _secondsController = TextEditingController();
@@ -37,6 +37,14 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
 
   bool _dnf = false;
   bool _submitting = false;
+
+  bool _isValidVideoUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return false;
+    }
+    return uri.scheme == 'http' || uri.scheme == 'https';
+  }
 
   @override
   void dispose() {
@@ -142,8 +150,11 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final detailValue = ref.watch(competitionDetailProvider(widget.competitionId));
-    final canSubmit = widget.eventId.isNotEmpty && widget.registrationId.isNotEmpty;
+    final detailValue = ref.watch(
+      competitionDetailProvider(widget.competitionId),
+    );
+    final canSubmit =
+        widget.eventId.isNotEmpty && widget.registrationId.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: const Text('기록 제출')),
@@ -160,7 +171,9 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
               )
             : AsyncValueView(
                 value: detailValue,
-                onRetry: () => ref.invalidate(competitionDetailProvider(widget.competitionId)),
+                onRetry: () => ref.invalidate(
+                  competitionDetailProvider(widget.competitionId),
+                ),
                 builder: (bundle) {
                   CompetitionEvent? event;
                   for (final stageBundle in bundle.stages) {
@@ -201,7 +214,10 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                            colors: [
+                              theme.colorScheme.primary,
+                              theme.colorScheme.secondary,
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -211,17 +227,21 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     event.wodType,
-                                    style: theme.textTheme.labelMedium?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -236,7 +256,11 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                             const SizedBox(height: 12),
                             Text(
                               event.name,
-                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -270,17 +294,30 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                       ],
                       Card(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('참가 스케일', style: TextStyle(fontWeight: FontWeight.w600)),
+                              const Text(
+                                '참가 스케일',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(alpha: 0.16),
+                                  color: theme.colorScheme.primary.withValues(
+                                    alpha: 0.16,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: theme.colorScheme.primary),
+                                  border: Border.all(
+                                    color: theme.colorScheme.primary,
+                                  ),
                                 ),
                                 child: Text(
                                   registration.scaleCategory,
@@ -298,8 +335,8 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                       TextField(
                         controller: _videoUrlController,
                         decoration: const InputDecoration(
-                          labelText: 'YouTube URL',
-                          hintText: 'https://youtube.com/watch?v=...',
+                          labelText: '영상 URL',
+                          hintText: 'https://example.com/video',
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -307,7 +344,8 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                       const SizedBox(height: 12),
                       CheckboxListTile(
                         value: _dnf,
-                        onChanged: (value) => setState(() => _dnf = value ?? false),
+                        onChanged: (value) =>
+                            setState(() => _dnf = value ?? false),
                         contentPadding: EdgeInsets.zero,
                         title: const Text('DNF (Did Not Finish)'),
                       ),
@@ -316,10 +354,24 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                         onPressed: _submitting
                             ? null
                             : () async {
-                                final videoUrl = _videoUrlController.text.trim();
+                                final videoUrl = _videoUrlController.text
+                                    .trim();
                                 if (videoUrl.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('YouTube URL을 입력해주세요.')),
+                                    const SnackBar(
+                                      content: Text('영상 URL을 입력해주세요.'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                if (!_isValidVideoUrl(videoUrl)) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'http 또는 https 형식의 영상 URL을 입력해주세요.',
+                                      ),
+                                    ),
                                   );
                                   return;
                                 }
@@ -335,33 +387,54 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                                   if (!_dnf && event != null) {
                                     switch (event.wodType) {
                                       case 'FOR_TIME':
-                                        final m = int.tryParse(_minutesController.text.trim()) ?? 0;
-                                        final s = int.tryParse(_secondsController.text.trim()) ?? 0;
+                                        final m =
+                                            int.tryParse(
+                                              _minutesController.text.trim(),
+                                            ) ??
+                                            0;
+                                        final s =
+                                            int.tryParse(
+                                              _secondsController.text.trim(),
+                                            ) ??
+                                            0;
                                         resultTimeSeconds = m * 60 + s;
                                         break;
                                       case 'AMRAP':
-                                        resultRounds = int.tryParse(_roundsController.text.trim());
-                                        resultReps = int.tryParse(_repsController.text.trim());
+                                        resultRounds = int.tryParse(
+                                          _roundsController.text.trim(),
+                                        );
+                                        resultReps = int.tryParse(
+                                          _repsController.text.trim(),
+                                        );
                                         break;
                                       case 'EMOM':
-                                        resultReps = int.tryParse(_repsController.text.trim());
+                                        resultReps = int.tryParse(
+                                          _repsController.text.trim(),
+                                        );
                                         break;
                                       case 'MAX_WEIGHT':
-                                        resultWeight = num.tryParse(_weightController.text.trim());
+                                        resultWeight = num.tryParse(
+                                          _weightController.text.trim(),
+                                        );
                                         break;
                                       case 'CUSTOM':
                                       default:
-                                        resultCustom = _customController.text.trim();
+                                        resultCustom = _customController.text
+                                            .trim();
                                         break;
                                     }
                                   }
 
-                                  await ref.read(competitionRepositoryProvider).submitScore(
+                                  await ref
+                                      .read(competitionRepositoryProvider)
+                                      .submitScore(
                                         widget.competitionId,
                                         eventId: widget.eventId,
                                         registrationId: widget.registrationId,
                                         videoUrl: videoUrl,
-                                        resultStatus: _dnf ? 'DNF' : 'COMPLETED',
+                                        resultStatus: _dnf
+                                            ? 'DNF'
+                                            : 'COMPLETED',
                                         resultTimeSeconds: resultTimeSeconds,
                                         resultRounds: resultRounds,
                                         resultReps: resultReps,
@@ -370,20 +443,30 @@ class _ScoreSubmitScreenState extends ConsumerState<ScoreSubmitScreen> {
                                       );
 
                                   // invalidate provider to reload competition detail data
-                                  ref.invalidate(competitionDetailProvider(widget.competitionId));
+                                  ref.invalidate(
+                                    competitionDetailProvider(
+                                      widget.competitionId,
+                                    ),
+                                  );
 
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('기록을 제출했습니다.')),
+                                    const SnackBar(
+                                      content: Text('기록을 제출했습니다.'),
+                                    ),
                                   );
                                   Navigator.of(context).pop();
                                 } catch (error) {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(resolveErrorMessage(error))),
+                                    SnackBar(
+                                      content: Text(resolveErrorMessage(error)),
+                                    ),
                                   );
                                 } finally {
-                                  if (mounted) setState(() => _submitting = false);
+                                  if (mounted) {
+                                    setState(() => _submitting = false);
+                                  }
                                 }
                               },
                         child: Text(_submitting ? '제출 중...' : '제출하기'),

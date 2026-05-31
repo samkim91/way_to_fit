@@ -24,8 +24,24 @@ class AppTheme {
       scaffoldBackgroundColor: _background,
       textTheme: _buildTextTheme(base.textTheme, scheme),
       chipTheme: base.chipTheme.copyWith(
+        backgroundColor: const Color(0xFF2A3240),
+        disabledColor: const Color(0xFF2A3240).withValues(alpha: 0.52),
+        selectedColor: _primary.withValues(alpha: 0.22),
+        secondarySelectedColor: _primary.withValues(alpha: 0.22),
+        checkmarkColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        labelStyle: const TextStyle(
+          color: Color(0xFFE7ECF5),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
         side: const BorderSide(color: _outline),
-        selectedColor: _primary.withValues(alpha: 0.16),
+        shape: const StadiumBorder(),
       ),
       cardTheme: const CardThemeData(
         color: _surface,

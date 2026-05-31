@@ -12,6 +12,7 @@ import com.waytofit.competition.domain.enums.ResultStatus
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.net.URI
 import java.time.Instant
 import java.util.UUID
 
@@ -26,8 +27,6 @@ class ScoreService(
     private val organizerRepository: CompetitionOrganizerRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) : SubmitScoreUseCase, GetScoreUseCase, OrganizerScoreQueryUseCase, ReviewScoreUseCase {
-
-    private val youtubeRegex = Regex("^(https?://)?(www\\.)?(youtube\\.com|youtu\\.?be)/.+$")
 
     override fun submitScore(command: SubmitScoreCommand, userId: UUID): CompetitionScore {
         val event = eventRepository.findById(command.eventId)
@@ -49,8 +48,8 @@ class ScoreService(
             throw BusinessException(ResponseCode.FORBIDDEN, "기록을 제출할 권한이 없습니다.")
         }
 
-        if (!youtubeRegex.matches(command.videoUrl)) {
-            throw BusinessException(ResponseCode.INVALID_PARAMETER, "올바른 YouTube URL 형식이 아닙니다.")
+        if (!isValidVideoUrl(command.videoUrl)) {
+            throw BusinessException(ResponseCode.INVALID_PARAMETER, "올바른 영상 URL 형식이 아닙니다.")
         }
 
         val existingScore = scoreRepository.findByEventIdAndRegistrationId(command.eventId, command.registrationId)
@@ -77,6 +76,17 @@ class ScoreService(
         ))
 
         return scoreRepository.save(score)
+    }
+
+    private fun isValidVideoUrl(value: String): Boolean {
+        return try {
+            val uri = URI(value.trim())
+            !uri.scheme.isNullOrBlank() &&
+                (uri.scheme.equals("http", ignoreCase = true) || uri.scheme.equals("https", ignoreCase = true)) &&
+                !uri.host.isNullOrBlank()
+        } catch (_: Exception) {
+            false
+        }
     }
 
     @Transactional(readOnly = true)

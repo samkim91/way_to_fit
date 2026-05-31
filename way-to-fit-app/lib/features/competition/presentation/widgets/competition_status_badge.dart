@@ -19,17 +19,17 @@ class CompetitionStatusBadge extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.45)),
+        border: Border.all(color: color.withValues(alpha: 0.58)),
       ),
       child: Text(
         status.label,
         style: theme.textTheme.labelMedium?.copyWith(
           color: color,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );

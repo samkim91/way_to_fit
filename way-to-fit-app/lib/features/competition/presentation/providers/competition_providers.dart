@@ -114,7 +114,7 @@ class LeaderboardQuery {
   final String competitionId;
   final String stageId;
   final String? eventId;
-  final RegistrationType registrationType;
+  final RegistrationType? registrationType;
   final String? gender;
   final String? scaleCategory;
 }
@@ -139,7 +139,9 @@ final overallLeaderboardProvider = FutureProvider.autoDispose
       return repository.getOverallLeaderboard(
         query.competitionId,
         stageId: query.stageId,
-        registrationType: query.registrationType == RegistrationType.team
+        registrationType: query.registrationType == null
+            ? null
+            : query.registrationType == RegistrationType.team
             ? 'TEAM'
             : 'INDIVIDUAL',
         gender: query.gender,

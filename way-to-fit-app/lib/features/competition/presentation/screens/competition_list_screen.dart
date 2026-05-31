@@ -16,16 +16,14 @@ class CompetitionListScreen extends ConsumerStatefulWidget {
 }
 
 class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
-  CompetitionStatus? selectedStatus = CompetitionStatus.registrationOpen;
+  CompetitionStatus? selectedStatus;
 
   @override
   Widget build(BuildContext context) {
     final value = ref.watch(competitionListProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('대회'),
-      ),
+      appBar: AppBar(title: const Text('대회')),
       body: SafeArea(
         child: AsyncValueView(
           value: value,
@@ -63,9 +61,9 @@ class _CompetitionListScreenState extends ConsumerState<CompetitionListScreen> {
                             setState(() => selectedStatus = null),
                       ),
                       for (final status in [
+                        CompetitionStatus.open,
                         CompetitionStatus.registrationOpen,
                         CompetitionStatus.inProgress,
-                        CompetitionStatus.open,
                         CompetitionStatus.completed,
                       ])
                         FilterChip(

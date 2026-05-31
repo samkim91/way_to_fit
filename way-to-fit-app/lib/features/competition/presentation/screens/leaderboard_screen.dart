@@ -7,6 +7,22 @@ import '../../../../core/widgets/async_value_view.dart';
 import '../../domain/models.dart';
 import '../providers/competition_providers.dart';
 
+enum _LeaderboardRegistrationFilter {
+  all('전체'),
+  individual('개인전'),
+  team('팀전');
+
+  const _LeaderboardRegistrationFilter(this.label);
+
+  final String label;
+
+  RegistrationType? get registrationType => switch (this) {
+    _LeaderboardRegistrationFilter.all => null,
+    _LeaderboardRegistrationFilter.individual => RegistrationType.individual,
+    _LeaderboardRegistrationFilter.team => RegistrationType.team,
+  };
+}
+
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key, required this.competitionId});
 
@@ -62,10 +78,10 @@ class _ScoreChipForLeaderboard extends StatelessWidget {
 }
 
 class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
-  RegistrationType registrationType = RegistrationType.individual;
+  _LeaderboardRegistrationFilter registrationFilter =
+      _LeaderboardRegistrationFilter.all;
   int selectedTab = 0;
-  
-  // 필터 상태
+
   String? genderFilter;
   String? scaleFilter;
 
@@ -89,31 +105,45 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             final eventTabs = [
               null,
               ...stage.events.where(
-                (event) => registrationType == RegistrationType.individual
-                    ? event.eventType == 'INDIVIDUAL'
-                    : event.eventType == 'TEAM',
+                (event) =>
+                    registrationFilter.registrationType == null ||
+                    (registrationFilter.registrationType ==
+                            RegistrationType.individual
+                        ? event.eventType == 'INDIVIDUAL'
+                        : event.eventType == 'TEAM'),
               ),
             ];
             final normalizedIndex = selectedTab >= eventTabs.length
                 ? 0
                 : selectedTab;
             final selectedEvent = eventTabs[normalizedIndex];
-            
+
             final query = LeaderboardQuery(
               competitionId: widget.competitionId,
               stageId: stage.stage.id,
               eventId: selectedEvent?.id,
-              registrationType: registrationType,
+              registrationType: selectedEvent != null
+                  ? selectedEvent.eventType == 'TEAM'
+                        ? RegistrationType.team
+                        : RegistrationType.individual
+                  : registrationFilter.registrationType,
               gender: genderFilter,
               scaleCategory: scaleFilter,
             );
 
-            // 로그인한 유저의 이 참가 유형에 맞는 registrationId 찾기
+            final selectedTypeForMe = selectedEvent != null
+                ? (selectedEvent.eventType == 'TEAM'
+                      ? RegistrationType.team
+                      : RegistrationType.individual)
+                : registrationFilter.registrationType;
+
             Registration? myReg;
-            for (final r in bundle.myRegistrations) {
-              if (r.registrationType == registrationType) {
-                myReg = r;
-                break;
+            if (selectedTypeForMe != null) {
+              for (final r in bundle.myRegistrations) {
+                if (r.registrationType == selectedTypeForMe) {
+                  myReg = r;
+                  break;
+                }
               }
             }
             final myRegId = myReg?.id;
@@ -125,26 +155,25 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SegmentedButton<RegistrationType>(
-                        segments: const [
-                          ButtonSegment(
-                            value: RegistrationType.individual,
-                            label: Text('개인전'),
-                          ),
-                          ButtonSegment(
-                            value: RegistrationType.team,
-                            label: Text('팀전'),
-                          ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final filter
+                              in _LeaderboardRegistrationFilter.values)
+                            ChoiceChip(
+                              label: Text(filter.label),
+                              selected: registrationFilter == filter,
+                              onSelected: (_) {
+                                setState(() {
+                                  registrationFilter = filter;
+                                  selectedTab = 0;
+                                  genderFilter = null;
+                                  scaleFilter = null;
+                                });
+                              },
+                            ),
                         ],
-                        selected: {registrationType},
-                        onSelectionChanged: (value) {
-                          setState(() {
-                            registrationType = value.first;
-                            selectedTab = 0;
-                            genderFilter = null;
-                            scaleFilter = null;
-                          });
-                        },
                       ),
                       const SizedBox(height: 14),
                       SingleChildScrollView(
@@ -169,25 +198,27 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      // 성별 및 스케일 필터 영역
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
                           ChoiceChip(
                             label: const Text('전체 성별'),
                             selected: genderFilter == null,
-                            onSelected: (_) => setState(() => genderFilter = null),
+                            onSelected: (_) =>
+                                setState(() => genderFilter = null),
                           ),
-                          const SizedBox(width: 8),
                           ChoiceChip(
                             label: const Text('남성'),
                             selected: genderFilter == 'MALE',
-                            onSelected: (_) => setState(() => genderFilter = 'MALE'),
+                            onSelected: (_) =>
+                                setState(() => genderFilter = 'MALE'),
                           ),
-                          const SizedBox(width: 8),
                           ChoiceChip(
                             label: const Text('여성'),
                             selected: genderFilter == 'FEMALE',
-                            onSelected: (_) => setState(() => genderFilter = 'FEMALE'),
+                            onSelected: (_) =>
+                                setState(() => genderFilter = 'FEMALE'),
                           ),
                         ],
                       ),
@@ -199,14 +230,18 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                             ChoiceChip(
                               label: const Text('전체 스케일'),
                               selected: scaleFilter == null,
-                              onSelected: (_) => setState(() => scaleFilter = null),
+                              onSelected: (_) =>
+                                  setState(() => scaleFilter = null),
                             ),
-                            for (final scale in bundle.competition.scaleCategories) ...[
+                            for (final scale
+                                in bundle.competition.scaleCategories) ...[
                               const SizedBox(width: 8),
                               ChoiceChip(
                                 label: Text(scale),
                                 selected: scaleFilter == scale,
-                                onSelected: (selected) => setState(() => scaleFilter = selected ? scale : null),
+                                onSelected: (selected) => setState(
+                                  () => scaleFilter = selected ? scale : null,
+                                ),
                               ),
                             ],
                           ],
@@ -218,8 +253,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: selectedEvent == null
-                      ? _OverallLeaderboardList(query: query, myRegistrationId: myRegId)
-                      : _EventLeaderboardList(query: query, myRegistrationId: myRegId),
+                      ? _OverallLeaderboardList(
+                          query: query,
+                          myRegistrationId: myRegId,
+                        )
+                      : _EventLeaderboardList(
+                          query: query,
+                          myRegistrationId: myRegId,
+                        ),
                 ),
               ],
             );
@@ -268,9 +309,15 @@ class _OverallLeaderboardList extends ConsumerWidget {
               onRefresh: () async =>
                   ref.refresh(overallLeaderboardProvider(query).future),
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(20, 0, 20, myEntry != null ? 100 : 28),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  0,
+                  20,
+                  myEntry != null ? 100 : 28,
+                ),
                 itemCount: entries.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
                 itemBuilder: (_, index) {
                   final entry = entries[index];
                   final isMe = entry.registrationId == myRegistrationId;
@@ -279,7 +326,10 @@ class _OverallLeaderboardList extends ConsumerWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: isMe
-                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                          ? BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 2,
+                            )
                           : BorderSide.none,
                     ),
                     color: isMe
@@ -301,7 +351,9 @@ class _OverallLeaderboardList extends ConsumerWidget {
                         ),
                       ),
                       onTap: entry.memberIds.isNotEmpty
-                          ? () => context.push('/athletes/${entry.memberIds.first}')
+                          ? () => context.push(
+                              '/athletes/${entry.memberIds.first}',
+                            )
                           : null,
                     ),
                   );
@@ -316,9 +368,14 @@ class _OverallLeaderboardList extends ConsumerWidget {
                 child: Card(
                   color: theme.colorScheme.primary,
                   elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -335,13 +392,21 @@ class _OverallLeaderboardList extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               myEntry.participantName,
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                         Text(
                           '${_rankLabel(myEntry.rank)} (${myEntry.totalPoints}pt)',
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ],
                     ),
@@ -391,9 +456,15 @@ class _EventLeaderboardList extends ConsumerWidget {
               onRefresh: () async =>
                   ref.refresh(eventLeaderboardProvider(query).future),
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(20, 0, 20, myEntry != null ? 100 : 28),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  0,
+                  20,
+                  myEntry != null ? 100 : 28,
+                ),
                 itemCount: entries.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
                 itemBuilder: (_, index) {
                   final entry = entries[index];
                   final isMe = entry.registrationId == myRegistrationId;
@@ -402,7 +473,10 @@ class _EventLeaderboardList extends ConsumerWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: isMe
-                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                          ? BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 2,
+                            )
                           : BorderSide.none,
                     ),
                     color: isMe
@@ -433,7 +507,9 @@ class _EventLeaderboardList extends ConsumerWidget {
                         ),
                       ),
                       onTap: entry.memberIds.isNotEmpty
-                          ? () => context.push('/athletes/${entry.memberIds.first}')
+                          ? () => context.push(
+                              '/athletes/${entry.memberIds.first}',
+                            )
                           : null,
                     ),
                   );
@@ -448,9 +524,14 @@ class _EventLeaderboardList extends ConsumerWidget {
                 child: Card(
                   color: theme.colorScheme.primary,
                   elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -467,13 +548,21 @@ class _EventLeaderboardList extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               myEntry.participantName,
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                         Text(
                           _rankLabel(myEntry.rank),
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ],
                     ),
