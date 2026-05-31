@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/error_message_resolver.dart';
 import '../../data/competition_repository.dart';
 
 class IndividualRegScreen extends ConsumerStatefulWidget {
@@ -103,7 +104,7 @@ class _IndividualRegScreenState extends ConsumerState<IndividualRegScreen> {
                       } catch (error) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
+                          SnackBar(content: Text(resolveErrorMessage(error))),
                         );
                       } finally {
                         if (mounted) setState(() => submitting = false);

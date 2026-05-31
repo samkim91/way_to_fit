@@ -82,30 +82,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'register/individual',
-            builder: (_, state) => IndividualRegScreen(
-              competitionId: state.pathParameters['competitionId']!,
-            ),
+            builder: (_, state) {
+              final scaleCategories =
+                  (state.extra as List<String>?) ?? const <String>[];
+              return IndividualRegScreen(
+                competitionId: state.pathParameters['competitionId']!,
+                scaleCategories: scaleCategories,
+              );
+            },
           ),
           GoRoute(
             path: 'register/team',
-            builder: (_, state) => TeamRegScreen(
-              competitionId: state.pathParameters['competitionId']!,
-            ),
+            builder: (_, state) {
+              final scaleCategories =
+                  (state.extra as List<String>?) ?? const <String>[];
+              return TeamRegScreen(
+                competitionId: state.pathParameters['competitionId']!,
+                scaleCategories: scaleCategories,
+              );
+            },
           ),
           GoRoute(
             path: 'submit-score',
             builder: (_, state) => ScoreSubmitScreen(
               competitionId: state.pathParameters['competitionId']!,
               eventId: state.uri.queryParameters['eventId'] ?? '',
-              registrationId:
-                  state.uri.queryParameters['registrationId'] ?? '',
+              registrationId: state.uri.queryParameters['registrationId'] ?? '',
             ),
           ),
           GoRoute(
             path: 'lineup',
             builder: (_, state) {
-              final members =
-                  (state.extra as List<TeamMember>?) ?? const [];
+              final members = (state.extra as List<TeamMember>?) ?? const [];
               return EventLineupScreen(
                 competitionId: state.pathParameters['competitionId']!,
                 registrationId:

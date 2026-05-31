@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/api_client.dart';
+import '../../../../core/api/error_message_resolver.dart';
 import '../../../../core/auth/auth_session.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -23,7 +24,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final dio = ref.read(dioProvider);
       final baseUrl = ref.read(apiBaseUrlProvider);
-      await ref.read(authControllerProvider.notifier).loginWithGoogle(dio, baseUrl);
+      await ref
+          .read(authControllerProvider.notifier)
+          .loginWithGoogle(dio, baseUrl);
       if (mounted) {
         if (from != null && from.isNotEmpty) {
           context.go(Uri.decodeComponent(from));
@@ -33,9 +36,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('로그인 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -72,9 +75,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 8),
                 Text(
                   '크로스핏 대회 플랫폼',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white54,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.white54),
                 ),
                 const SizedBox(height: 64),
                 SizedBox(

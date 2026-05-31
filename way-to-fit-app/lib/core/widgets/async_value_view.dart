@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../api/error_message_resolver.dart';
+
 class AsyncValueView<T> extends StatelessWidget {
   const AsyncValueView({
     super.key,
@@ -25,7 +27,7 @@ class AsyncValueView<T> extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                error.toString(),
+                resolveErrorMessage(error),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),

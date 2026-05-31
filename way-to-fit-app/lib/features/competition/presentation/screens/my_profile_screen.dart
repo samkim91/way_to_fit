@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/api_client.dart';
-import '../../../../core/api/api_exception.dart';
+import '../../../../core/api/error_message_resolver.dart';
 import '../../../../core/auth/auth_session.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/async_value_view.dart';
@@ -63,9 +63,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       await ref.read(authControllerProvider.notifier).logout(dio);
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     } finally {
       if (mounted) {
@@ -94,10 +92,13 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       ).showSnackBar(const SnackBar(content: Text('프로필을 저장했습니다.')));
     } catch (e) {
       if (!mounted) return;
-      final message = e is ApiException ? e.message : '프로필 저장에 실패했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            resolveErrorMessage(e, fallbackMessage: '프로필 저장에 실패했습니다.'),
+          ),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -214,16 +215,16 @@ class _LoginPromptView extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 '로그인이 필요합니다',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               Text(
                 '프로필을 확인하려면 로그인하세요.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white54,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white54),
               ),
               const SizedBox(height: 32),
               SizedBox(

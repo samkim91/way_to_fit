@@ -48,6 +48,7 @@ class _FakeCompetitionRepository extends CompetitionRepository {
         accountNumber: '123-456',
         accountHolder: '홍주최',
         entryFee: 50000,
+        scaleCategories: const ['RXD', 'SCALED'],
         bannerImageUrl: null,
       ),
     ];
@@ -80,6 +81,15 @@ class _FakeCompetitionRepository extends CompetitionRepository {
   Future<List<CompetitionEvent>> getEvents(
     String competitionId,
     String stageId,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<MyEventScore?> getScore(
+    String competitionId,
+    String eventId,
+    String registrationId,
   ) {
     throw UnimplementedError();
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/error_message_resolver.dart';
 import '../../data/competition_repository.dart';
 import '../../domain/models.dart';
 import '../providers/competition_providers.dart';
@@ -66,9 +67,9 @@ class _EventLineupScreenState extends ConsumerState<EventLineupScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('데이터 로딩 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     }
   }
@@ -88,22 +89,24 @@ class _EventLineupScreenState extends ConsumerState<EventLineupScreen> {
     setState(() => _saving.add(eventId));
     try {
       final memberIds = (_selections[eventId] ?? {}).toList();
-      await ref.read(competitionRepositoryProvider).setEventLineup(
-        widget.competitionId,
-        eventId,
-        widget.registrationId,
-        memberIds,
-      );
+      await ref
+          .read(competitionRepositoryProvider)
+          .setEventLineup(
+            widget.competitionId,
+            eventId,
+            widget.registrationId,
+            memberIds,
+          );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('라인업이 저장되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('라인업이 저장되었습니다.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving.remove(eventId));
@@ -117,21 +120,21 @@ class _EventLineupScreenState extends ConsumerState<EventLineupScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _teamEvents.isEmpty
-              ? const Center(child: Text('설정할 팀 이벤트가 없습니다.'))
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    for (final event in _teamEvents)
-                      _EventLineupCard(
-                        event: event,
-                        members: widget.members,
-                        selectedIds: _selections[event.id] ?? {},
-                        saving: _saving.contains(event.id),
-                        onToggle: (uid) => _toggleMember(event.id, uid),
-                        onSave: () => _saveLineup(event.id),
-                      ),
-                  ],
-                ),
+          ? const Center(child: Text('설정할 팀 이벤트가 없습니다.'))
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                for (final event in _teamEvents)
+                  _EventLineupCard(
+                    event: event,
+                    members: widget.members,
+                    selectedIds: _selections[event.id] ?? {},
+                    saving: _saving.contains(event.id),
+                    onToggle: (uid) => _toggleMember(event.id, uid),
+                    onSave: () => _saveLineup(event.id),
+                  ),
+              ],
+            ),
     );
   }
 }
@@ -164,9 +167,9 @@ class _EventLineupCard extends StatelessWidget {
           children: [
             Text(
               event.name,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const Divider(height: 24),
             for (final member in members)
