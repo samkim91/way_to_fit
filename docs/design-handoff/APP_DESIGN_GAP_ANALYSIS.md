@@ -5,9 +5,9 @@
 >
 > **전제 조건:**
 > - `box`(소속) 개념은 제외 (모델에서 뺀 것)
-> - `예정(COMING_SOON)` 상태 = `오픈(OPEN)` 상태와 동일하게 처리
-> - `scaleCategory` 는 이벤트별 설정값이 아니라 대회(`Competition`)의 공용 카테고리 목록으로 관리
-> - 기록 제출 화면의 스케일 UI는 변경용 토글이 아니라 신청된 `registration.scaleCategory` 표시로 해석
+> - `예정(COMING_SOON)` 상태 = `CompetitionLifecycle.OPEN` 상태로 처리
+> - `scaleCategory` 는 대회(`Competition`)에서 공용 목록을 관리하고, 각 이벤트(`Event`)는 이 중 적용할 스케일 카테고리를 복수 선택하여 지정함.
+> - 기록 제출 화면의 스케일 UI는 변경용 토글이 아니라 신청된 `registration.scaleCategory` 표시(Read-only 고정)로 해석
 
 ---
 
@@ -84,7 +84,7 @@
 
 | 필드 | 위치 | 상태 |
 |---|---|---|
-| `participants` (참가자 수) | `Competition` 모델 | 필요 시 추가 |
-| `scaleCategories` | `Competition` 모델 | 공용 스케일 카테고리 소유 필드로 필요 |
+| `participantsCount` (참가자 수) | `Competition` 모델 | 추가 완료 |
+| `scaleCategories` | `Competition` 및 `CompetitionEvent` 모델 | 대회 공용 및 이벤트별 복수 선택 적용 완료 |
 | gender/scale 필터 | `LeaderboardQuery` | 리더보드 필터 구현 시 추가 |
 | `myScore`, `myScoreStatus` | 이벤트별 나의 기록 | 대회 상세 API 번들에서 내 기록 포함 필요 |

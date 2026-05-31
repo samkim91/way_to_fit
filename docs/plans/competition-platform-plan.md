@@ -91,8 +91,8 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 **Description:** 대회 CRUD. `status`, `bankInfo`, 신청 기간 포함. 대회 목록(공개)과 상세(공개) API.
 
 **Acceptance criteria:**
-- [ ] `POST /api/competitions` — 주최자만 생성 가능, 생성 시 status=DRAFT
-- [ ] `GET /api/competitions` — 공개 목록, DRAFT 제외, 페이징
+- [ ] `POST /api/competitions` — 주최자만 생성 가능, 생성 시 lifecycle=OPEN
+- [ ] `GET /api/competitions` — 공개 목록, 페이징
 - [ ] `GET /api/competitions/{id}` — 공개 상세
 - [ ] `PATCH /api/competitions/{id}` — 주최자만 수정
 - [ ] `competition` 테이블 마이그레이션 정상 동작
@@ -103,7 +103,7 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 
 **Files:**
 - `competition/domain/Competition.kt`, `BankInfo.kt`
-- `competition/domain/enums/CompetitionStatus.kt`
+- `competition/domain/enums/CompetitionLifecycle.kt`
 - `competition/application/port/in/{Create,Update,Get}CompetitionUseCase.kt`
 - `competition/application/port/out/CompetitionRepository.kt`
 - `competition/application/service/CompetitionService.kt`
@@ -147,13 +147,13 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 **Description:** 이벤트 CRUD. WodType 재활용. 기록 존재 시 order 변경 불가 제약.
 
 **Acceptance criteria:**
-- [ ] `POST /api/competitions/{id}/stages/{stageId}/events` — 이벤트 생성
+- [ ] `POST /api/competitions/{id}/stages/{stageId}/events` — 이벤트 생성 (대회 공용 scaleCategories 중 복수 선택하여 지정)
 - [ ] `PATCH /api/competitions/{id}/events/{eventId}` — 수정 (Score 존재 시 order 변경 → 400)
 - [ ] `DELETE /api/competitions/{id}/events/{eventId}` — Score 없을 때만 삭제 가능
 - [ ] `CreateEventRequest`에 `releaseAt: Instant?` 포함 (null 허용)
-- [ ] 참가자/관중용 이벤트 목록 조회 시 `competition.status IN (PUBLISHED, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED) AND (releaseAt IS NULL OR releaseAt <= now())` 조건 적용
+- [ ] 참가자/관중용 이벤트 목록 조회 시 `competition.lifecycle IN (OPEN, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED) AND (releaseAt IS NULL OR releaseAt <= now())` 조건 적용
 - [ ] Organizer는 `releaseAt` 무관하게 전체 이벤트 조회 가능
-- [ ] 스케일 카테고리는 이벤트별 입력값이 아니라 대회 공용 `Competition.scaleCategories` 를 참조
+- [ ] 스케일 카테고리는 대회 공용 `Competition.scaleCategories` 중 해당 이벤트에 적용될 스케일들을 관리자가 복수 선택하여 저장
 
 **Verification:** `./gradlew test --tests "*.CompetitionEventTest"`
 
@@ -507,7 +507,7 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 **Acceptance criteria:**
 - [ ] Stage 생성/편집 (타입, 포맷, 기간)
 - [ ] Competition 생성/편집에서 공용 `scaleCategories` 관리
-- [ ] Event 생성/편집 (이름, eventType, gender, WodType 파라미터, 마감일)에서 공용 scaleCategory를 참조 표시
+- [ ] Event 생성/편집 (이름, eventType, gender, WodType 파라미터, 마감일)에서 대회 공용 `scaleCategories` 중 적용할 스케일을 체크박스로 복수 선택하도록 구현
 - [ ] Event 삭제 (기록 없을 때만)
 - [ ] 본선 진출자 선별 UI (예선 리더보드에서 체크박스 선택)
 
@@ -677,6 +677,7 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 - [ ] 이벤트 목록 → 이벤트 선택 → 기록 제출 폼
 - [ ] WodType별 입력 필드 (FOR_TIME: 시간, AMRAP: 라운드+렙, MAX_WEIGHT: 무게)
 - [ ] YouTube URL 입력 + 형식 검증
+- [ ] 신청 시점의 scaleCategory 고정 텍스트/배지 표시 (수정 불가)
 - [ ] 제출 후 상태 배지 표시 (SUBMITTED → 판독 대기 안내)
 - [ ] submissionDeadline 지난 이벤트는 비활성
 

@@ -408,7 +408,7 @@ final dioProvider = Provider<Dio>((ref) {
 
 ```dart
 abstract class CompetitionRepository {
-  Future<List<Competition>> getCompetitions({CompetitionStatus? status});
+  Future<List<Competition>> getCompetitions({CompetitionLifecycle? lifecycle});
   Future<Competition> getCompetition(String id);
   Future<Registration> registerIndividual(String competitionId, IndividualRegRequest req);
   Future<Registration> registerTeam(String competitionId, TeamRegRequest req);
@@ -430,9 +430,9 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   final Dio _dio;
 
   @override
-  Future<List<Competition>> getCompetitions({CompetitionStatus? status}) async {
+  Future<List<Competition>> getCompetitions({CompetitionLifecycle? lifecycle}) async {
     final params = <String, dynamic>{};
-    if (status != null) params['status'] = status.name;
+    if (lifecycle != null) params['lifecycle'] = lifecycle.name;
 
     final res = await _dio.get('/api/competitions', queryParameters: params);
     return (res.data['data']['content'] as List)
@@ -623,13 +623,13 @@ Widget _buildScoreInput(WodType wodType) {
 // mock/mock_competition_repository.dart
 class MockCompetitionRepository implements CompetitionRepository {
   @override
-  Future<List<Competition>> getCompetitions({CompetitionStatus? status}) async {
+  Future<List<Competition>> getCompetitions({CompetitionLifecycle? lifecycle}) async {
     await Future.delayed(const Duration(milliseconds: 500)); // 네트워크 지연 시뮬레이션
     return [
       Competition(
         id: '1',
         title: '2026 Seoul CrossFit Open',
-        status: CompetitionStatus.open,
+        lifecycle: CompetitionLifecycle.registrationOpen,
         startDate: DateTime(2026, 5, 1),
         endDate: DateTime(2026, 5, 10),
         registrationEndAt: DateTime(2026, 4, 30),
@@ -670,9 +670,11 @@ class AppColors {
   static const surface = Color(0xFF2D3748);
 
   // 대회 상태 배지
-  static const statusOpen = Color(0xFF2563EB);
-  static const statusInProgress = Color(0xFFF97316);
-  static const statusFinished = Color(0xFF22C55E);
+  static const lifecycleOpen = Color(0xFF9CA3AF);
+  static const lifecycleRegistrationOpen = Color(0xFF2563EB);
+  static const lifecycleInProgress = Color(0xFFF97316);
+  static const lifecycleCompleted = Color(0xFF22C55E);
+  static const lifecycleRegistrationClosed = Color(0xFFE53E3E);
   static const statusPending = Color(0xFFFFC107);
   static const statusConfirmed = Color(0xFF4CAF50);
 

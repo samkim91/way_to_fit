@@ -84,7 +84,7 @@ com.waytofit/
     │   ├── CompetitionScore.kt
     │   ├── AthleteProfile.kt
     └── enums/
-        ├── CompetitionStatus.kt   # DRAFT|PUBLISHED|REGISTRATION_OPEN|REGISTRATION_CLOSED|IN_PROGRESS|COMPLETED
+        ├── CompetitionLifecycle.kt   # OPEN|REGISTRATION_OPEN|REGISTRATION_CLOSED|IN_PROGRESS|COMPLETED
         ├── StageType.kt           # QUALIFIER|FINAL
     │       ├── StageFormat.kt         # ONLINE|OFFLINE|HYBRID
     │       ├── EventType.kt           # INDIVIDUAL|TEAM
@@ -137,7 +137,8 @@ data class Competition(
     val name: String,
     val description: String? = null,
     val bannerImageUrl: String? = null,
-    val status: CompetitionStatus,
+    val lifecycle: CompetitionLifecycle,
+    val participantsCount: Int = 0,
     val startAt: Instant,                // 대회 시작일시
     val endAt: Instant,                  // 대회 종료일시
     val registrationStartAt: Instant,    // 신청 시작 시점 (UTC)
@@ -180,24 +181,25 @@ data class CompetitionEvent(
     val name: String,                     // "Event 1", "21.1" 등
     val eventType: EventType,             // INDIVIDUAL | TEAM
     val gender: GenderCategory,           // MEN | WOMEN | MIXED
+    val scaleCategories: List<String>,    // 대회 공용 스케일 목록 중 적용할 스케일 카테고리 (복수 선택)
     val wodType: WodType,                 // 기존 enum 재활용
     val timeCap: Int? = null,
     val amrapDuration: Int? = null,
     val emomDuration: Int? = null,
     val weightUnit: WeightUnit? = null,   // 기존 enum 재활용
     val description: String? = null,
-    val releaseAt: Instant? = null,       // null이면 대회 PUBLISHED/OPEN 시점에 일괄 공개
+    val releaseAt: Instant? = null,       // null이면 대회 OPEN 시점에 일괄 공개
     val submissionDeadline: Instant,      // 온라인 제출 마감 시점 (UTC)
     val audit: AuditInfo = AuditInfo.empty(),
 )
 ```
 
-> 스케일 카테고리는 이벤트별 저장 필드가 아니라 `Competition.scaleCategories` 공용 목록으로 관리한다. 이벤트 조회 응답에서 scale 정보가 필요하면 대회 공용 목록을 참조해 내려준다.
+> 스케일 카테고리는 대회 공용 `Competition.scaleCategories` 중 해당 이벤트에 적용될 스케일들을 관리자가 복수 선택하여 이벤트마다 개별 관리한다.
 
 **이벤트 공개 조건 (Participant/Spectator 조회 시 적용)**
 
 ```
-competition.status IN (PUBLISHED, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED)
+competition.lifecycle IN (OPEN, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED)
 AND (event.releaseAt IS NULL OR event.releaseAt <= now())
 ```
 
@@ -284,19 +286,17 @@ data class CompetitionScore(
 - **점수**: 순위값 합산, 낮을수록 좋음 (CrossFit 표준)
 - **Tie-breaker**: 마지막 이벤트 성적 우수자 자동 적용 + 주최자 수동 override
 
-### CompetitionStatus 공개 범위
+### CompetitionLifecycle 공개 범위
 
-| Status | 공개 목록 노출 | 상세 조회 | 비고 |
+| Lifecycle | 공개 목록 노출 | 상세 조회 | 비고 |
 |---|---|---|---|
-| DRAFT | ✗ (Organizer만) | ✗ | 작성 중 |
-| PUBLISHED | ✓ | ✓ | 정보 공개 (신청 전) |
+| OPEN | ✓ | ✓ | 정보 공개 (신청 전, COMING_SOON) |
 | REGISTRATION_OPEN | ✓ | ✓ | 신청 가능 |
 | REGISTRATION_CLOSED | ✓ | ✓ | 신청 마감, 대회 준비 중 |
 | IN_PROGRESS | ✓ | ✓ | 대회 진행 중 |
 | COMPLETED | ✓ | ✓ | 대회 종료 |
 
-- 공개 목록 API(`GET /api/competitions`)는 `status != DRAFT` 조건으로 필터링
-- Organizer는 자신이 주최하는 DRAFT 대회도 조회 가능
+- 공개 목록 API(`GET /api/competitions`)는 모든 상태 노출
 
 ---
 
@@ -366,7 +366,7 @@ data class CompetitionHistorySnapshot(
 | PATCH | `/api/competitions/{id}/events/{eventId}` | 이벤트 수정 | Organizer |
 | DELETE | `/api/competitions/{id}/events/{eventId}` | 이벤트 삭제 | Organizer |
 
-이벤트 생성/수정 시 스케일 카테고리를 별도로 입력받지 않는다. 이벤트는 대회 공용 `scaleCategories` 를 참조한다.
+이벤트 생성/수정 시 대회 공용 `scaleCategories` 중 적용할 스케일 카테고리 목록(`scaleCategories: List<String>`)을 선택하여 등록한다.
 
 ### Registration
 
@@ -392,7 +392,7 @@ data class CompetitionHistorySnapshot(
 | GET | `/api/competitions/{id}/events/{eventId}/scores` | 기록 목록 | Organizer |
 | PATCH | `/api/competitions/{id}/scores/{scoreId}/review` | 기록 판독 | Organizer |
 
-기록 제출은 신청 시점에 확정된 `registration.scaleCategory` 를 기준으로 처리하며, 제출 request 에서 스케일 카테고리를 다시 받지 않는다.
+기록 제출은 신청 시점에 확정된 `registration.scaleCategory` 를 고정값으로 처리하며, 제출 request 에서 스케일 카테고리를 다시 받지 않는다.
 
 ### Leaderboard
 
@@ -449,7 +449,7 @@ data class CompetitionHistorySnapshot(
 - 프로젝트 관례에 맞는 날짜/시간 타입 사용 (LocalDate, LocalTime, Instant 혼용)
 - API 응답은 기존 `ApiResponse` 공통 포맷 사용
 - 기록 score는 기존 `WodRecord`와 별도 도메인으로 분리 유지
-- DRAFT 대회는 공개 목록 API(`GET /api/competitions`)에서 제외
+- 대회 목록 API(`GET /api/competitions`)는 전체 공개 상태 반환
 - 이벤트 조회 시 Participant/Spectator는 `releaseAt` 공개 조건 필터링 적용
 
 **Ask first:**

@@ -25,13 +25,13 @@
 ```
 Competition
 ├── Stage (QUALIFIER → FINAL, 독립 리더보드)
-│   └── Event (이벤트 1, 2, 3...)
-│       ├── eventType: INDIVIDUAL | TEAM
-│       ├── gender: MEN | WOMEN | MIXED
-│       ├── scaleCategories: [RXD, SCALED, ...]
-│       ├── WodType + timeCap 등 파라미터   ← 기존 WodType 재활용
-│       ├── releaseAt (null이면 대회 OPEN 시 일괄 공개, 값 있으면 순차 공개)
-│       └── submissionDeadline (이벤트별 개별 마감)
+│    └── Event (이벤트 1, 2, 3...)
+        ├── eventType: INDIVIDUAL | TEAM
+        ├── gender: MEN | WOMEN | MIXED
+        ├── scaleCategories: [대회 공용 중 복수 선택 지정]
+        ├── WodType + timeCap 등 파라미터   ← 기존 WodType 재활용
+        ├── releaseAt (null이면 대회 OPEN 시 일괄 공개, 값 있으면 순차 공개)
+        └── submissionDeadline (이벤트별 개별 마감)
 │
 ├── Registration (대회별 참가 신청)
 │   ├── Individual: userId, gender, scaleCategory
@@ -89,7 +89,7 @@ Competition
 - **프로젝션 페이지는 주최자 어드민 내 탭** → WebSocket 세션이 주최자 인원 수로 제한되어 부하 예측 가능
 - **Competition Score는 기존 WodRecord와 완전 분리** — 영상 검증·조정 이력·이벤트 연계 구조가 달라 확장이 아닌 별도 도메인
 - **이벤트 순서(order) 변경 불가** — 기록(Score)이 1건이라도 존재하면 변경 차단 (순위 일관성 보장)
-- **DRAFT 대회는 공개 비노출** — `OPEN` 이상부터 공개 목록 노출. Organizer는 자신의 DRAFT 대회 조회 가능
+- **대회 목록 노출** — `CompetitionLifecycle`에 정의된 모든 상태(OPEN 이상)에서 목록 노출. DRAFT 개념은 소멸함.
 - **이벤트 순차 공개** — `releaseAt`으로 자동 공개 시점 지정. `null`이면 대회 OPEN 시 일괄 공개
 
 ---
