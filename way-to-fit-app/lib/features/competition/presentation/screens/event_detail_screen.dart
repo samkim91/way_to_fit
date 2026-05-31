@@ -135,20 +135,20 @@ class EventDetailScreen extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 32),
-              if (myScore != null) ...[
-                Text(
-                  '내 기록',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+              Text(
+                '내 기록',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (myScore != null) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -181,31 +181,38 @@ class EventDetailScreen extends ConsumerWidget {
                           label: '기록',
                           value: _getScoreLabel(myScore, event),
                         ),
-
+                        const SizedBox(height: 24),
+                      ] else ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text('제출된 기록이 없습니다.'),
+                          ),
+                        ),
                       ],
-                    ),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        onPressed: (registration != null && registration.paymentStatus == PaymentStatus.confirmed)
+                            ? () {
+                                context.push(
+                                  '/competitions/$competitionId/submit-score?eventId=${event!.id}&registrationId=${registration.id}',
+                                );
+                              }
+                            : null,
+                        child: Text(
+                          myScore == null ? '기록 제출하기' : '기록 수정하기',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-              const SizedBox(height: 24),
-              if (registration != null && registration.paymentStatus == PaymentStatus.confirmed)
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  onPressed: () {
-                    context.push(
-                      '/competitions/$competitionId/submit-score?eventId=${event!.id}&registrationId=${registration.id}',
-                    );
-                  },
-                  child: Text(
-                    myScore == null ? '기록 제출하기' : '기록 수정하기',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ),
+              ),
             ],
           );
         },
