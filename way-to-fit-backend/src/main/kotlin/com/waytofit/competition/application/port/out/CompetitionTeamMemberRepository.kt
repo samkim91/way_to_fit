@@ -8,4 +8,6 @@ interface CompetitionTeamMemberRepository {
     fun findByRegistrationId(registrationId: UUID): List<CompetitionTeamMember>
     fun isUserAlreadyInAnyTeam(competitionId: UUID, userId: UUID): Boolean
     fun findAllByUserId(userId: UUID): List<CompetitionTeamMember>
+
+    fun findAllByRegistrationIdIn(registrationIds: Collection<UUID>): List<CompetitionTeamMember>
 }

@@ -28,4 +28,8 @@ class CompetitionTeamMemberPersistenceAdapter(
     override fun findAllByUserId(userId: UUID): List<CompetitionTeamMember> {
         return jpaRepository.findAllByUserId(userId).map { it.toDomain() }
     }
+
+    override fun findAllByRegistrationIdIn(registrationIds: Collection<UUID>): List<CompetitionTeamMember> {
+        return jpaRepository.findAllByRegistrationIdIn(registrationIds).map { it.toDomain() }
+    }
 }

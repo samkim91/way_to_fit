@@ -3,6 +3,7 @@ package com.waytofit.competition.application.port.`in`
 import com.waytofit.competition.domain.CompetitionRegistration
 import com.waytofit.competition.domain.EventLineup
 import com.waytofit.competition.domain.enums.PaymentStatus
+import com.waytofit.competition.domain.enums.TeamRole
 import com.waytofit.user.domain.enums.Gender
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -28,9 +29,17 @@ interface GetEventLineupUseCase {
     fun getEventLineup(eventId: UUID, registrationId: UUID): EventLineup?
 }
 
+data class TeamMemberWithName(
+    val userId: UUID,
+    val gender: Gender,
+    val teamRole: TeamRole,
+    val memberName: String?,
+)
+
 data class RegistrationWithName(
     val registration: CompetitionRegistration,
     val athleteName: String?,
+    val members: List<TeamMemberWithName>? = null,
 )
 
 interface OrganizerRegistrationQueryUseCase {

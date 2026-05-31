@@ -1,9 +1,12 @@
 package com.waytofit.competition.adapter.`in`.web.dto
 
+import com.waytofit.competition.application.port.`in`.RegistrationWithName
+import com.waytofit.competition.application.port.`in`.TeamMemberWithName
 import com.waytofit.competition.domain.CompetitionRegistration
 import com.waytofit.competition.domain.CompetitionTeamMember
 import com.waytofit.competition.domain.enums.PaymentStatus
 import com.waytofit.competition.domain.enums.RegistrationType
+import com.waytofit.competition.domain.enums.TeamRole
 import com.waytofit.user.domain.enums.Gender
 import java.time.Instant
 import java.util.UUID
@@ -53,11 +56,21 @@ data class UpdatePaymentStatusRequest(
 data class TeamMemberResponse(
     val userId: UUID,
     val gender: Gender,
+    val teamRole: TeamRole? = null,
+    val memberName: String? = null,
 ) {
     companion object {
         fun fromDomain(domain: CompetitionTeamMember) = TeamMemberResponse(
             userId = domain.userId,
-            gender = domain.gender
+            gender = domain.gender,
+            teamRole = domain.teamRole,
+        )
+
+        fun fromWithName(member: TeamMemberWithName) = TeamMemberResponse(
+            userId = member.userId,
+            gender = member.gender,
+            teamRole = member.teamRole,
+            memberName = member.memberName,
         )
     }
 }
@@ -94,6 +107,21 @@ data class RegistrationResponse(
             paymentNote = domain.paymentNote,
             members = members?.map { TeamMemberResponse.fromDomain(it) },
             createdAt = domain.audit.createdAt
+        )
+
+        fun fromWithName(withName: RegistrationWithName) = RegistrationResponse(
+            id = withName.registration.id!!,
+            competitionId = withName.registration.competitionId,
+            userId = withName.registration.userId,
+            athleteName = withName.athleteName,
+            registrationType = withName.registration.registrationType,
+            teamName = withName.registration.teamName,
+            scaleCategory = withName.registration.scaleCategory,
+            paymentStatus = withName.registration.paymentStatus,
+            gender = withName.registration.gender,
+            paymentNote = withName.registration.paymentNote,
+            members = withName.members?.map { TeamMemberResponse.fromWithName(it) },
+            createdAt = withName.registration.audit.createdAt,
         )
     }
 }

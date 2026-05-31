@@ -18,6 +18,7 @@ export type WodType = 'FOR_TIME' | 'AMRAP' | 'EMOM' | 'MAX_WEIGHT' | 'CUSTOM';
 export type WeightUnit = 'KG' | 'LB';
 
 export type RegistrationType = 'INDIVIDUAL' | 'TEAM';
+export type TeamRole = 'LEADER' | 'MEMBER';
 export type PaymentStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
 export type ScoreStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'ADJUSTED' | 'REJECTED';
@@ -163,7 +164,9 @@ export interface UpdateEventRequest {
 
 export interface TeamMemberResponse {
   userId: string;
-  gender: string; // Gender enum from user domain
+  gender: string;
+  teamRole: TeamRole | null;
+  memberName: string | null;
 }
 
 export interface Registration {

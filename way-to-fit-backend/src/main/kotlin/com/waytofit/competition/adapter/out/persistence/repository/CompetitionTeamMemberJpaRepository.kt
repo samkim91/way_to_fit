@@ -17,4 +17,6 @@ interface CompetitionTeamMemberJpaRepository : JpaRepository<CompetitionTeamMemb
     fun existsByCompetitionIdAndUserId(competitionId: UUID, userId: UUID): Boolean
 
     fun findAllByUserId(userId: UUID): List<CompetitionTeamMemberEntity>
+
+    fun findAllByRegistrationIdIn(registrationIds: Collection<UUID>): List<CompetitionTeamMemberEntity>
 }

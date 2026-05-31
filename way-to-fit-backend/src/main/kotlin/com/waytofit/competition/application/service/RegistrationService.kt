@@ -167,15 +167,37 @@ class RegistrationService(
             throw BusinessException(ResponseCode.FORBIDDEN)
         }
         val registrations = registrationRepository.findRegistrationsByCompetitionId(competitionId, paymentStatus, pageable)
+
+        val teamRegistrationIds = registrations.content
+            .filter { it.registrationType == RegistrationType.TEAM }
+            .mapNotNull { it.id }
+            .toSet()
+
+        val membersByRegistrationId = if (teamRegistrationIds.isNotEmpty()) {
+            teamMemberRepository.findAllByRegistrationIdIn(teamRegistrationIds).groupBy { it.registrationId }
+        } else emptyMap()
+
         val individualUserIds = registrations.content
             .filter { it.registrationType == RegistrationType.INDIVIDUAL }
             .map { it.userId }
             .toSet()
-        val nameMap = userQueryPort.findNamesByIds(individualUserIds)
+        val teamMemberUserIds = membersByRegistrationId.values.flatten().map { it.userId }.toSet()
+        val nameMap = userQueryPort.findNamesByIds(individualUserIds + teamMemberUserIds)
+
         return registrations.map { reg ->
             RegistrationWithName(
                 registration = reg,
                 athleteName = if (reg.registrationType == RegistrationType.INDIVIDUAL) nameMap[reg.userId] else null,
+                members = if (reg.registrationType == RegistrationType.TEAM) {
+                    membersByRegistrationId[reg.id]?.map { member ->
+                        TeamMemberWithName(
+                            userId = member.userId,
+                            gender = member.gender,
+                            teamRole = member.teamRole,
+                            memberName = nameMap[member.userId],
+                        )
+                    }
+                } else null,
             )
         }
     }
