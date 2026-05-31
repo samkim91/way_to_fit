@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { CompetitionEvent } from '@/features/competition/types';
+import type { CompetitionEvent } from '@/features/competition/types';
 import { leaderboardApi, stageApi, eventApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
