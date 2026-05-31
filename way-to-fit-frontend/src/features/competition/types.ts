@@ -41,6 +41,7 @@ export interface Competition {
   entryFee: number;
   bannerImageUrl: string | null;
   createdAt: string | null;
+  scaleCategories: string[];
 }
 
 export interface CreateCompetitionRequest {
@@ -55,6 +56,7 @@ export interface CreateCompetitionRequest {
   accountHolder: string;
   entryFee: number;
   bannerImageUrl?: string | null;
+  scaleCategories: string[];
 }
 
 export interface UpdateCompetitionRequest {
@@ -70,6 +72,7 @@ export interface UpdateCompetitionRequest {
   accountHolder?: string;
   entryFee?: number;
   bannerImageUrl?: string | null;
+  scaleCategories?: string[];
 }
 
 // ─── Stage ────────────────────────────────────────────────────────────────────

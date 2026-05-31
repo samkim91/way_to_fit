@@ -18,6 +18,7 @@ data class CreateCompetitionRequest(
     val accountHolder: String,
     val entryFee: Int,
     val bannerImageUrl: String?,
+    val scaleCategories: List<String> = emptyList(),
 ) {
     fun toCommand() = com.waytofit.competition.application.port.`in`.CreateCompetitionCommand(
         name = name,
@@ -30,7 +31,8 @@ data class CreateCompetitionRequest(
         accountNumber = accountNumber,
         accountHolder = accountHolder,
         entryFee = entryFee,
-        bannerImageUrl = bannerImageUrl
+        bannerImageUrl = bannerImageUrl,
+        scaleCategories = scaleCategories,
     )
 }
 
@@ -47,6 +49,7 @@ data class UpdateCompetitionRequest(
     val accountHolder: String?,
     val entryFee: Int?,
     val bannerImageUrl: String?,
+    val scaleCategories: List<String>? = null,
 ) {
     fun toCommand(id: UUID) = com.waytofit.competition.application.port.`in`.UpdateCompetitionCommand(
         id = id,
@@ -61,7 +64,8 @@ data class UpdateCompetitionRequest(
         accountNumber = accountNumber,
         accountHolder = accountHolder,
         entryFee = entryFee,
-        bannerImageUrl = bannerImageUrl
+        bannerImageUrl = bannerImageUrl,
+        scaleCategories = scaleCategories,
     )
 }
 
@@ -81,6 +85,7 @@ data class CompetitionResponse(
     val entryFee: Int,
     val bannerImageUrl: String?,
     val createdAt: Instant?,
+    val scaleCategories: List<String>,
 ) {
     companion object {
         fun fromDomain(competition: Competition, now: Instant) = CompetitionResponse(
@@ -98,7 +103,8 @@ data class CompetitionResponse(
             accountHolder = competition.bankInfo.accountHolder,
             entryFee = competition.bankInfo.entryFee,
             bannerImageUrl = competition.bannerImageUrl,
-            createdAt = competition.audit.createdAt
+            createdAt = competition.audit.createdAt,
+            scaleCategories = competition.scaleCategories,
         )
     }
 }

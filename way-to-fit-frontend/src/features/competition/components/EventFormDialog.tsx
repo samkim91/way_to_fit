@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ interface EventFormDialogProps {
   competitionId: string;
   stageId: string;
   event: CompetitionEvent | null;
+  competitionScaleCategories: string[];
 }
 
 interface FormState {
@@ -48,7 +50,7 @@ interface FormState {
   wodType: WodType;
   order: string;
   gender: GenderCategory;
-  scaleCategories: string;
+  scaleCategories: string[];
   submissionDeadline: string;
   releaseAt: string;
   timeCapMinutes: string;
@@ -64,7 +66,7 @@ const defaultForm: FormState = {
   wodType: 'FOR_TIME',
   order: '1',
   gender: 'MEN',
-  scaleCategories: '',
+  scaleCategories: [],
   submissionDeadline: '',
   releaseAt: '',
   timeCapMinutes: '',
@@ -83,10 +85,6 @@ function toSeconds(minutes: string): number | null {
   return minutes.trim() && !isNaN(n) && n > 0 ? n * 60 : null;
 }
 
-function parseScaleCategories(raw: string): string[] {
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
-}
-
 function getGenderOptions(eventType: EventType): GenderCategory[] {
   return eventType === 'INDIVIDUAL' ? ['MEN', 'WOMEN'] : ['MEN', 'WOMEN', 'MIXED'];
 }
@@ -95,7 +93,14 @@ function normalizeGenderForEventType(eventType: EventType, gender: GenderCategor
   return getGenderOptions(eventType).includes(gender) ? gender : 'MEN';
 }
 
-export function EventFormDialog({ open, onOpenChange, competitionId, stageId, event }: EventFormDialogProps) {
+export function EventFormDialog({
+  open,
+  onOpenChange,
+  competitionId,
+  stageId,
+  event,
+  competitionScaleCategories,
+}: EventFormDialogProps) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
@@ -111,7 +116,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
           wodType: event.wodType,
           order: String(event.order),
           gender: normalizeGenderForEventType(event.eventType, event.gender),
-          scaleCategories: event.scaleCategories.join(', '),
+          scaleCategories: event.scaleCategories,
           submissionDeadline: event.submissionDeadline,
           releaseAt: event.releaseAt ?? '',
           timeCapMinutes: toMinutes(event.timeCap),
@@ -134,7 +139,7 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
         wodType: data.wodType,
         order: Number(data.order),
         gender: data.gender,
-        scaleCategories: parseScaleCategories(data.scaleCategories),
+        scaleCategories: data.scaleCategories,
         submissionDeadline: data.submissionDeadline,
         releaseAt: data.releaseAt || null,
         timeCap: data.wodType === 'FOR_TIME' ? toSeconds(data.timeCapMinutes) : null,
@@ -160,8 +165,8 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
     if (!formData.name.trim()) newErrors.name = '이름을 입력해주세요.';
     if (!formData.order || Number(formData.order) < 1) newErrors.order = '순서는 1 이상이어야 합니다.';
     if (!formData.submissionDeadline) newErrors.submissionDeadline = '제출 마감일시를 선택해주세요.';
-    if (!parseScaleCategories(formData.scaleCategories).length)
-      newErrors.scaleCategories = '스케일 카테고리를 하나 이상 입력해주세요.';
+    if (competitionScaleCategories.length > 0 && !formData.scaleCategories.length)
+      newErrors.scaleCategories = '스케일 카테고리를 하나 이상 선택해주세요.';
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     saveMutation.mutate(formData);
   };
@@ -175,6 +180,16 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
       eventType: value as EventType,
       gender: normalizeGenderForEventType(value as EventType, p.gender),
     }));
+
+  const toggleScaleCategory = (category: string) => {
+    setFormData((p) => {
+      const current = p.scaleCategories;
+      const next = current.includes(category)
+        ? current.filter((c) => c !== category)
+        : [...current, category];
+      return { ...p, scaleCategories: next };
+    });
+  };
 
   const genderOptions = getGenderOptions(formData.eventType);
 
@@ -222,13 +237,31 @@ export function EventFormDialog({ open, onOpenChange, competitionId, stageId, ev
             </div>
           </div>
 
-          <div className="space-y-1">
-            <Label>스케일 카테고리 * (쉼표로 구분)</Label>
-            <Input
-              value={formData.scaleCategories}
-              onChange={(e) => set('scaleCategories')(e.target.value)}
-              placeholder="예: RXD, SCALED"
-            />
+          <div className="space-y-2">
+            <Label>스케일 카테고리 *</Label>
+            {competitionScaleCategories.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {competitionScaleCategories.map((category) => (
+                  <div key={category} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`scale-${category}`}
+                      checked={formData.scaleCategories.includes(category)}
+                      onCheckedChange={() => toggleScaleCategory(category)}
+                    />
+                    <label
+                      htmlFor={`scale-${category}`}
+                      className="text-sm font-medium leading-none cursor-pointer"
+                    >
+                      {category}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                대회에 등록된 부문이 없습니다. 대회 편집에서 참가 부문을 먼저 설정해주세요.
+              </p>
+            )}
             {errors.scaleCategories && <p className="text-xs text-destructive">{errors.scaleCategories}</p>}
           </div>
 

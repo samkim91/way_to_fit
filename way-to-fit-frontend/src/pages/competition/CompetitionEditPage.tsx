@@ -43,6 +43,8 @@ export function CompetitionEditPage() {
     visibility: 'PRIVATE' as CompetitionVisibility,
   });
 
+  const [scaleCategoriesInput, setScaleCategoriesInput] = useState('');
+
   useEffect(() => {
     if (competition) {
       setFormData({
@@ -59,18 +61,24 @@ export function CompetitionEditPage() {
         bannerImageUrl: competition.bannerImageUrl || '',
         visibility: normalizeCompetitionVisibility(competition.visibility),
       });
+      setScaleCategoriesInput((competition.scaleCategories ?? []).join(', '));
     }
   }, [competition]);
 
   const mutation = useMutation({
     mutationFn: (data: typeof formData) => {
       if (!competitionId) throw new Error('No competition ID');
+      const scaleCategories = scaleCategoriesInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       return competitionApi.updateCompetition(competitionId, {
         ...data,
         startAt: new Date(data.startAt).toISOString(),
         endAt: new Date(data.endAt).toISOString(),
         registrationStartAt: new Date(data.registrationStartAt).toISOString(),
         registrationEndAt: new Date(data.registrationEndAt).toISOString(),
+        scaleCategories,
       });
     },
     onSuccess: () => {
@@ -118,6 +126,18 @@ export function CompetitionEditPage() {
             <div className="space-y-2">
               <Label htmlFor="description">설명</Label>
               <Textarea id="description" name="description" value={formData.description} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="scaleCategories">참가 부문 (쉼표로 구분) *</Label>
+              <Input
+                id="scaleCategories"
+                value={scaleCategoriesInput}
+                onChange={(e) => setScaleCategoriesInput(e.target.value)}
+                placeholder="예: RXD, SCALED, MASTERS"
+              />
+              <p className="text-xs text-muted-foreground">
+                등록 신청 및 이벤트에서 선택 가능한 부문 목록입니다.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="startAt">대회 기간 *</Label>

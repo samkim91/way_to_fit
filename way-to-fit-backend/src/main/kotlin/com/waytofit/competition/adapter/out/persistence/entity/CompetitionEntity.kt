@@ -53,6 +53,14 @@ class CompetitionEntity(
         AttributeOverride(name = "entryFee", column = Column(name = "entry_fee")),
     )
     val bankInfo: BankInfo,
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "competition_scale_categories",
+        joinColumns = [JoinColumn(name = "competition_id")]
+    )
+    @Column(name = "category_name")
+    val scaleCategories: List<String> = emptyList(),
 ) : BaseEntity() {
 
     fun toDomain(): Competition = Competition(
@@ -66,6 +74,7 @@ class CompetitionEntity(
         registrationEndAt = registrationEndAt,
         visibility = visibility ?: CompetitionVisibility.PRIVATE,
         bankInfo = bankInfo,
+        scaleCategories = scaleCategories,
         audit = AuditInfo(
             createdAt = createdAt,
             createdBy = createdBy,
@@ -85,7 +94,8 @@ class CompetitionEntity(
             registrationStartAt = competition.registrationStartAt,
             registrationEndAt = competition.registrationEndAt,
             visibility = competition.visibility,
-            bankInfo = competition.bankInfo
+            bankInfo = competition.bankInfo,
+            scaleCategories = competition.scaleCategories
         )
     }
 }

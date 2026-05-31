@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { stageApi, eventApi } from '@/features/competition/api';
+import { stageApi, eventApi, competitionApi } from '@/features/competition/api';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/utils';
 import { Plus } from 'lucide-react';
@@ -26,10 +26,17 @@ export function ConfigTab() {
   const [finalistSheetOpen, setFinalistSheetOpen] = useState(false);
   const [finalistStage, setFinalistStage] = useState<CompetitionStage | null>(null);
 
+  const { data: competition } = useQuery({
+    queryKey: ['competition', competitionId],
+    queryFn: () => competitionApi.getCompetition(competitionId),
+  });
+
   const { data: stages, isLoading } = useQuery({
     queryKey: ['stages', competitionId],
     queryFn: () => stageApi.getStages(competitionId),
   });
+
+  const competitionScaleCategories = competition?.scaleCategories ?? [];
 
   const openCreateStage = () => { setEditingStage(null); setStageDialogOpen(true); };
   const openEditStage = (stage: CompetitionStage) => { setEditingStage(stage); setStageDialogOpen(true); };
@@ -37,6 +44,26 @@ export function ConfigTab() {
 
   return (
     <div className="space-y-6">
+      {competitionScaleCategories.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">참가 부문</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {competitionScaleCategories.map((cat) => (
+                <span
+                  key={cat}
+                  className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground"
+                >
+                  {cat}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">스테이지 구성</h2>
         <Button onClick={openCreateStage}>
@@ -81,7 +108,11 @@ export function ConfigTab() {
                 </div>
 
                 <div className="mt-4 border-t pt-4">
-                  <EventList competitionId={competitionId} stageId={stage.id} />
+                  <EventList
+                    competitionId={competitionId}
+                    stageId={stage.id}
+                    competitionScaleCategories={competitionScaleCategories}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -105,7 +136,15 @@ export function ConfigTab() {
   );
 }
 
-function EventList({ competitionId, stageId }: { competitionId: string; stageId: string }) {
+function EventList({
+  competitionId,
+  stageId,
+  competitionScaleCategories,
+}: {
+  competitionId: string;
+  stageId: string;
+  competitionScaleCategories: string[];
+}) {
   const queryClient = useQueryClient();
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CompetitionEvent | null>(null);
@@ -192,6 +231,7 @@ function EventList({ competitionId, stageId }: { competitionId: string; stageId:
         competitionId={competitionId}
         stageId={stageId}
         event={editingEvent}
+        competitionScaleCategories={competitionScaleCategories}
       />
     </>
   );
