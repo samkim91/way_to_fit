@@ -31,11 +31,7 @@ export function CompetitionCreatePage() {
   const [scaleCategoriesInput, setScaleCategoriesInput] = useState('');
 
   const mutation = useMutation({
-    mutationFn: (data: typeof formData) => {
-      const scaleCategories = scaleCategoriesInput
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
+    mutationFn: ({ formData: data, scaleCategories }: { formData: typeof formData; scaleCategories: string[] }) => {
       return competitionApi.createCompetition({
         ...data,
         startAt: new Date(data.startAt).toISOString(),
@@ -57,12 +53,12 @@ export function CompetitionCreatePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = scaleCategoriesInput.split(',').map((s) => s.trim()).filter(Boolean);
-    if (parsed.length === 0) {
+    const scaleCategories = scaleCategoriesInput.split(',').map((s) => s.trim()).filter(Boolean);
+    if (scaleCategories.length === 0) {
       alert('참가 부문을 하나 이상 입력해주세요.');
       return;
     }
-    mutation.mutate(formData);
+    mutation.mutate({ formData, scaleCategories });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

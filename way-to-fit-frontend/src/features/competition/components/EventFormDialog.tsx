@@ -165,7 +165,7 @@ export function EventFormDialog({
     if (!formData.name.trim()) newErrors.name = '이름을 입력해주세요.';
     if (!formData.order || Number(formData.order) < 1) newErrors.order = '순서는 1 이상이어야 합니다.';
     if (!formData.submissionDeadline) newErrors.submissionDeadline = '제출 마감일시를 선택해주세요.';
-    if (competitionScaleCategories.length > 0 && !formData.scaleCategories.length)
+    if (!formData.scaleCategories.length)
       newErrors.scaleCategories = '스케일 카테고리를 하나 이상 선택해주세요.';
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     saveMutation.mutate(formData);
@@ -251,6 +251,21 @@ export function EventFormDialog({
                     <label
                       htmlFor={`scale-${category}`}
                       className="text-sm font-medium leading-none cursor-pointer"
+                    >
+                      {category}
+                    </label>
+                  </div>
+                ))}
+                {formData.scaleCategories.filter((c) => !competitionScaleCategories.includes(c)).map((category) => (
+                  <div key={category} className="flex items-center space-x-2 opacity-60">
+                    <Checkbox
+                      id={`scale-orphan-${category}`}
+                      checked
+                      onCheckedChange={() => toggleScaleCategory(category)}
+                    />
+                    <label
+                      htmlFor={`scale-orphan-${category}`}
+                      className="text-sm font-medium leading-none cursor-pointer line-through"
                     >
                       {category}
                     </label>

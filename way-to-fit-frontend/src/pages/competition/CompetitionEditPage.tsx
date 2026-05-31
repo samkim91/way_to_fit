@@ -94,6 +94,14 @@ export function CompetitionEditPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const scaleCategories = scaleCategoriesInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (scaleCategories.length === 0) {
+      alert('참가 부문을 하나 이상 입력해주세요.');
+      return;
+    }
     mutation.mutate(formData);
   };
 
