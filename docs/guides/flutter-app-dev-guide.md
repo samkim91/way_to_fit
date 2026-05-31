@@ -421,6 +421,8 @@ abstract class CompetitionRepository {
 }
 ```
 
+`Competition` 모델은 신청 화면과 리더보드 필터가 참조할 `scaleCategories` 공용 목록을 포함해야 한다. 기록 제출은 `registration.scaleCategory` 를 표시만 하고, `SubmitScoreRequest` 에 별도 스케일 필드를 두지 않는다.
+
 ### Repository 구현 (data)
 
 ```dart

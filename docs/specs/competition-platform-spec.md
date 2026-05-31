@@ -180,7 +180,6 @@ data class CompetitionEvent(
     val name: String,                     // "Event 1", "21.1" 등
     val eventType: EventType,             // INDIVIDUAL | TEAM
     val gender: GenderCategory,           // MEN | WOMEN | MIXED
-    val scaleCategories: List<String>,    // ["RXD", "SCALED"]
     val wodType: WodType,                 // 기존 enum 재활용
     val timeCap: Int? = null,
     val amrapDuration: Int? = null,
@@ -192,6 +191,8 @@ data class CompetitionEvent(
     val audit: AuditInfo = AuditInfo.empty(),
 )
 ```
+
+> 스케일 카테고리는 이벤트별 저장 필드가 아니라 `Competition.scaleCategories` 공용 목록으로 관리한다. 이벤트 조회 응답에서 scale 정보가 필요하면 대회 공용 목록을 참조해 내려준다.
 
 **이벤트 공개 조건 (Participant/Spectator 조회 시 적용)**
 
@@ -235,6 +236,7 @@ data class CompetitionTeamMember(
 **제약:**
 - 한 선수는 동일 대회에서 INDIVIDUAL 등록 1개 + TEAM 등록 1개까지만 허용
 - 한 선수는 하나의 팀에만 소속 가능 (동일 대회 내)
+- `scaleCategory` 는 반드시 해당 대회의 `Competition.scaleCategories` 중 하나여야 함
 
 ### EventLineup (이벤트별 출전 멤버)
 
@@ -346,6 +348,8 @@ data class CompetitionHistorySnapshot(
 | GET | `/api/competitions/{id}` | 대회 상세 | 없음 |
 | PATCH | `/api/competitions/{id}` | 대회 수정 | Organizer |
 
+`Competition` 은 참가 신청/리더보드에서 공통으로 사용하는 `scaleCategories: List<String>` 를 가진다.
+
 ### Stage
 
 | Method | Path | 설명 | 인증 |
@@ -361,6 +365,8 @@ data class CompetitionHistorySnapshot(
 | POST | `/api/competitions/{id}/stages/{stageId}/events` | 이벤트 생성 | Organizer |
 | PATCH | `/api/competitions/{id}/events/{eventId}` | 이벤트 수정 | Organizer |
 | DELETE | `/api/competitions/{id}/events/{eventId}` | 이벤트 삭제 | Organizer |
+
+이벤트 생성/수정 시 스케일 카테고리를 별도로 입력받지 않는다. 이벤트는 대회 공용 `scaleCategories` 를 참조한다.
 
 ### Registration
 
@@ -385,6 +391,8 @@ data class CompetitionHistorySnapshot(
 | POST | `/api/competitions/{id}/events/{eventId}/scores` | 기록 제출 | User |
 | GET | `/api/competitions/{id}/events/{eventId}/scores` | 기록 목록 | Organizer |
 | PATCH | `/api/competitions/{id}/scores/{scoreId}/review` | 기록 판독 | Organizer |
+
+기록 제출은 신청 시점에 확정된 `registration.scaleCategory` 를 기준으로 처리하며, 제출 request 에서 스케일 카테고리를 다시 받지 않는다.
 
 ### Leaderboard
 

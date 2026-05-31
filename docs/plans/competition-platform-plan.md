@@ -150,10 +150,10 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 - [ ] `POST /api/competitions/{id}/stages/{stageId}/events` — 이벤트 생성
 - [ ] `PATCH /api/competitions/{id}/events/{eventId}` — 수정 (Score 존재 시 order 변경 → 400)
 - [ ] `DELETE /api/competitions/{id}/events/{eventId}` — Score 없을 때만 삭제 가능
-- [ ] `scaleCategories` 는 String 리스트로 자유 입력 ("RXD", "SCALED", "MASTERS 55+" 등)
 - [ ] `CreateEventRequest`에 `releaseAt: Instant?` 포함 (null 허용)
 - [ ] 참가자/관중용 이벤트 목록 조회 시 `competition.status IN (PUBLISHED, REGISTRATION_OPEN, REGISTRATION_CLOSED, IN_PROGRESS, COMPLETED) AND (releaseAt IS NULL OR releaseAt <= now())` 조건 적용
 - [ ] Organizer는 `releaseAt` 무관하게 전체 이벤트 조회 가능
+- [ ] 스케일 카테고리는 이벤트별 입력값이 아니라 대회 공용 `Competition.scaleCategories` 를 참조
 
 **Verification:** `./gradlew test --tests "*.CompetitionEventTest"`
 
@@ -502,11 +502,12 @@ Phase 7: Flutter 앱    ← Phase 1~5 API 완료 후 (Phase 6와 병렬)
 
 ### Task W-6-2: 대회 상세 + Stage/Event 구성 UI [M]
 
-**Description:** Stage 추가, Event 구성(WodType, 마감일, gender, scaleCategory 등) UI.
+**Description:** Stage 추가, Event 구성(WodType, 마감일, gender, 공용 scaleCategory 참조) UI.
 
 **Acceptance criteria:**
 - [ ] Stage 생성/편집 (타입, 포맷, 기간)
-- [ ] Event 생성/편집 (이름, eventType, gender, scaleCategories, WodType 파라미터, 마감일)
+- [ ] Competition 생성/편집에서 공용 `scaleCategories` 관리
+- [ ] Event 생성/편집 (이름, eventType, gender, WodType 파라미터, 마감일)에서 공용 scaleCategory를 참조 표시
 - [ ] Event 삭제 (기록 없을 때만)
 - [ ] 본선 진출자 선별 UI (예선 리더보드에서 체크박스 선택)
 
